@@ -34,15 +34,13 @@ function feed_importer_install()
   `collection_id` int(10) unsigned NOT NULL,
   `feed_url` text COLLATE utf8_unicode_ci,
   `feed_title` text COLLATE utf8_unicode_ci,
-  `feed_description` text COLLATE utf8_unicode_ci,
-  `last_import_time` datetime DEFAULT NULL,
+  `feed_description` text COLLATE utf8_unicode_ci,  		
   `import_start_time` datetime DEFAULT NULL,
   `import_end_time` datetime DEFAULT NULL,
   `feed_display_name` text COLLATE utf8_unicode_ci,
   `feed_display_description` text COLLATE utf8_unicode_ci,
   `item_type_id` int(10) unsigned DEFAULT NULL,
   `import_media` tinyint(1) DEFAULT '0',
-  `process_id` int(10) unsigned DEFAULT NULL,
   `trim_length` int(10) unsigned DEFAULT '300',
   `update_frequency` text COLLATE utf8_unicode_ci,
   `import_content` tinyint(1) DEFAULT NULL,
@@ -57,25 +55,42 @@ function feed_importer_install()
   `tags_map` text COLLATE utf8_unicode_ci,
   `items_linkback` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;"; 		
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;"; 		
 	
 	$db->exec($sql);		
 
 
 	$sql ="CREATE TABLE IF NOT EXISTS `{$db->prefix}feed_importer_imports` (
-  `id` int(10) unsigned NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `created`  datetime DEFAULT NULL,		
   `feed_id` int(10) unsigned NOT NULL,
-  `collection_id` int(10) unsigned NOT NULL,
-  `item_id` int(10) unsigned NOT NULL,
-  `feed_item_id` int(11) NOT NULL,
-  `feed_item_permalink` text COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+  `status` text COLLATE utf8_unicode_ci,
+  `sp_error` text COLLATE utf8_unicode_ci,
+  `collection_id` int(10) unsigned ,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
 	$db->exec($sql);
 
+	$sql = "CREATE TABLE IF NOT EXISTS `{$db->prefix}feed_importer_imported_items` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `import_id` int(10) unsigned NOT NULL,
+  `permalink` text COLLATE utf8_unicode_ci ,
+  `sp_id` int(10) unsigned ,
+  `item_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+
+	$db->exec($sql);
 //TODO: how to check whether it exists or not?
 
-	insert_item_type(array('name'=>'Web Page', 'description'=>'A single web page'));
+	try {
+		insert_item_type(array('name'=>'Web Page', 'description'=>'A single web page'));	
+	} catch(Exception $e) {
+		//handle the case where a 'Web Page' has already been created
+	}
+	
 //lookup the elementInfos I want to pass in their IDs
 // see globals.php line 455 insert_item_type
 
@@ -90,7 +105,9 @@ function feed_importer_uninstall()
 	$db->exec($sql);	 
 	$sql = "DROP TABLE IF EXISTS `{$db->prefix}feed_importer_imports`";
 	$db->exec($sql);
-	
+
+	$sql = "DROP TABLE IF EXISTS `{$db->prefix}feed_importer_imported_items`";
+	$db->exec($sql);	
 }
 
 

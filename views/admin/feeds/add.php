@@ -7,14 +7,13 @@ $head = array('body_class' => 'feed-importer primary',
               
 head($head);
 ?>
+<?php
 
-<style type="text/css">
-div.feed-importer-field {
-	clear: both;
-	
-}
+//print_r($feedimporter_feed);
 
-</style>
+?>
+
+
 
 <script type="text/javascript">
 

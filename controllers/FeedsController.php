@@ -8,12 +8,12 @@
  	
     public function init() 
     {
-        $this->_modelClass = 'FeedImporterFeed';
+        $this->_modelClass = 'FeedImporter_Feed';
     } 	
  	
 	public function browseAction()
 	{
-		$debug = 'wtf';
+		// need to dig up related import info for each feed
 		
 
 		return parent::browseAction();
@@ -22,18 +22,57 @@
  	public function addAction()
  	{
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
- 		
- 		$feed = new SimplePie();
-		$feed->set_feed_url('http://simplepie.org/blog/feed/');		 
-		// Run SimplePie.
-		$feed->init();
 
+/*
+array(
+      'name'       => [string], 
+      'description'=> [string], 
+      'public'     => [true|false], 
+      'featured'   => [true|false]
+      'collectors' => [array of entities, entity ids, or entity property arrays]
+  )
+*/
+   		
+ 		$feed = new SimplePie();
+ 		
+        $varName = strtolower($this->_modelClass);
+        $class = $this->_modelClass;
+        
+        $record = new FeedImporter_Feed();
  		//do some pre-processing 
  		//create a new collection if needed
- 		if($_POST['new_collection']) {
- 			$collectionID = $this->_createCollectionFromFeed($feed);
+ 		
+ 		if($_GET['feed_url']) {
+ 			$feed_url = $_GET['feed_url'];
+ 			$debug = new stdClass();	
+			$feed->set_feed_url($feed_url);		 
+			// Run SimplePie.
+			$feed->init();
+			if($feed->error() ) {
+				$this->flash($feed->error() );				
+			}
+			$debug->title = $feed->get_title();
+			$debug->description = $feed->get_description();
+			
+			$record->feed_url = $feed_url;
+			$record->feed_title = $feed->get_title();
+			$record->feed_description = $feed->get_description();
+			
+        	$this->view->assign(array($varName=>$record));
  		}
-		parent::addAction();
+ 		 		
+ 		if($_POST['new_collection']) {
+ 			//$collectionID = $this->_createCollectionFromFeed($feed);
+ 		}
+        try {
+            if ($record->saveForm($_POST)) {
+                $this->redirect->goto('browse');
+            }
+        } catch (Omeka_Validator_Exception $e) {
+            $this->flashValidationErrors($e);
+        } catch (Exception $e) {
+            $this->flash($e->getMessage());
+        } 				
  	}
  	
  	public function editAction()
@@ -41,129 +80,40 @@
  		parent::editAction();
  	}
  	
- 	public function checkAction()
+ 	public function historyAction() 
  	{
- 		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
- 		
- 		$feed = new SimplePie();
-		$feed->set_feed_url('http://simplepie.org/blog/feed/');		 
-		// Run SimplePie.
-		$feed->init();
-		$debug = "starting";
+ 		$fi_feed = $this->findById();
+ 		$imports = get_db()->getTable('FeedImporter_Import')->findByFeedId($fi_feed->id);
+ 		$this->view->assign(array('feed'=>$fi_feed , 'imports'=>$imports ) );
+ 	}
+
+ 	
+	public function importAction() 
+	{
 		
-		foreach ($feed->get_items() as $item) {
+		$feed = $this->findById();
+		$feed_id = $feed->id;
+		//make a new FI_Import
+		$newImport = new FeedImporter_Import();
+		$newImport->feed_id = $feed_id;
+		$newImport->collection_id = $feed->collection_id;
+		$newImport->status = STATUS_IN_PROGRESS_IMPORT;			
+		$newImport->created = date('Y-m-d G:i:s');
+        $newImport->save();
+                    
+        // dispatch the background process to import the items
+        $user = current_user();
+        $args = array();
+        $args['import_id'] = $newImport->id;
+        
+        ProcessDispatcher::startProcess('FeedImporter_ImportProcess', $user, $args);            			
+		$this->view->assign(array('import'=>$newImport, 'feed'=>$feed));
 		
-			$debug .= "<br/>" . $item->get_id();
-		}
-		
- 		$this->view->debug = $debug;
- 	}
+
+	}
  	
- 	public function importAction()
+ 	public function _createCollectionFromFeed($feed) 
  	{
- 		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
- 		
- 		$feed = new SimplePie();
-		$feed->set_feed_url($feedimporterfeed->feed_url);		 
-		// Run SimplePie.
-		$feed->init();
-		$debug = "starting import";
-		
-		foreach ($feed->get_items() as $item) {
-			//check whether it's aready imported
-			//by an id? permalink? pub date compared to last import date?
-			if(! $this->_checkNeedsImport($item)) {
-				$metadataArray = $this->_buildFeedItemMetadata($item);
-				$elementTextsArray = $this->_buildFeedItemElementTexts($item); 
-				$newOmekaItem = insert_item($metadataArray, $elementTextsArray);
-				$newImport = new FeedImporterImport();
-				$newImport->item_id = $newOmekaItem->id;
-				$newImport->feed_id = $feedimporterfeed->id;
-				$newImport->collection_id = $feedimporterfeed->collection_id;
-				$newImport->feed_item_id = $item->get_id();
-				$newImport->feed_item_permalink = $item->get_permalink();
-				$newImport->save();
-				$debug .= "<br/>" . $item->get_title();				
-			}
-		}		
- 		$this->view->debug = $debug; 		
- 	}
- 	
- 	public function _buildFeedItemMetadata($item) 
- 	{
- 		//check settings against FeedImporterFeed settings for what to do with everything
- 		$metadataArray = array();
- 		$metadataArray['collection_id'] = $feedimporterfeed->collection_id;
- 		$metadataArray['item_type_id'] = $feedimporterfeed->item_type_id;
- 		if($feedimporterfeed->tags_as_tags) {
- 			$tags = $item->get_tags();
- 			$tagsString = "";
- 			foreach($tags as $tag) {
- 				$tagsString .= $tag . ",";
- 			}
- 			$metadataArray['tags'] = $tagsString;
- 		}	
- 		return $metadataArray;
- 	}
- 	public function _buildFeedItemElementTexts($item)
- 	{
- 		//check again FeedImporterFeed settings for how to handle elements
- 		//first pass at this plugin does basic, predictable stuff, all toward Dublin Core
- 		//later passes will build the advanced mapping to any available Element Set
- 		//super-advanced optionn will stuff the data in as RDFa
- 		
- 		$elementTextsArray = array('Dublin Core');
-		$title = $item->get_title();
-		$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$title, 'html'=>false); 
-		if($feedimporterfeed->content_as_description) {			
-			$desc = substr($item->get_description() , 0 , $feedimportfeed->trim_length);
-			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
-		}
-		
-		if($feedimporterfeed->tags_as_subjects) {
-			foreach($item->get_tags() as $tag) {
-				if($feedimporterfeed->tags_linkback) {
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tag, 'html'=>false);
-				} else {
-					// how does SimplePie report back tag info?
-					$scheme = $tag->get_scheme();
-					$tagHTML = "<a href='" . $scheme . $tag . "' target='_blank'>$tag</a>";					
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);
-				}
-			}
-		}
-		$related = "<a href='" . $item->get_permalink() .  "' target='_blank'>"  . $item->get_title() . "</a>";
-		$elementTextsArray['Dublin Core']['Related'][] = array('text'=>$related, 'html'=>true);
-		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
-		return $elementTextsArray;		
- 	}
- 	
- 	public function _checkNeedsImport($item)
- 	{
- 		if ($this->_checkImported($item)) {
- 			return false;
- 		}
- 		
- 		
- 		// check if date is in period for import
- 		
- 		if($feedimporterfeed->import_start_time < $item->get_date() && $item->get_date() < $feedimporterfeed->import_end_time) {
- 			return true;
- 		}
- 	}
- 	
- 	public function _checkImported($item)
- 	{
- 		//check whether the item has already been imported. somehow.
- 	}
- 	
- 	public function _buildFeedItemFiles($item) 
- 	{
- 		//TODO: the global insert files function might be trickier than I want??
- 		$media = $item->get_media(); 		
- 	} 	
- 	
- 	public function _createCollectionFromFeed($feed) {
  		$metadata = array();
  		$metadata['name'] = $feed->get_title();
  		$metadata['description'] = $feed->get_description();
