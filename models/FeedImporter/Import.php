@@ -57,8 +57,9 @@ class FeedImporter_Import extends Omeka_Record
 					$newImportedItem->permalink = $sp_item->get_permalink();					
 					$newImportedItem->save();
 					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
-					//$this->_doFileImportForItem($sp_item);
-								
+					if($this->fi_feed->import_media) {
+						$this->_doFileImportForItem($sp_item, $newOmekaItem);
+					}		
 				}
 			}				
 		}
@@ -98,13 +99,13 @@ class FeedImporter_Import extends Omeka_Record
  		$elementTextsArray = array('Dublin Core');
 		$title = $sp_item->get_title();
 		$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$title, 'html'=>false); 
-		if($feedimporterfeed->content_as_description) {			
+		if($this->fi_feed->content_as_description) {			
 			$desc = substr($sp_item->get_description() , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
 		}
 		
 		if($this->fi_feed->tags_as_subjects) {
-			foreach($sp_item->get_tags() as $tag) {
+			foreach($sp_item->get_categories() as $tag) {
 				if($this->fi_feed->tags_linkback) {
 					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tag, 'html'=>false);
 				} else {
@@ -159,10 +160,25 @@ class FeedImporter_Import extends Omeka_Record
 		return false;
  	}
  	
- 	private function _doFileImportForItem($sp_item, $fi_item_id) 
- 	{
- 		//TODO: the global insert files function might be trickier than I want??
- 		$media = $sp_item->get_media(); 		
+ 	private function _doFileImportForItem($sp_item, $o_item) 
+ 	{ 		
+ 		$enclosures = $sp_item->get_enclosures();
+		$filesArray = array();
+		foreach($enclosures as $enclosure) {
+			$enclosureInfoArray = array();
+			$enclosureInfoArray['source'] = $enclosure->get_link();
+			$enclousreInfoArray['name'] = $enclosure->get_title();
+			$enclosureInfoArray['metadata'] = $this->_buildMediaFileMetaData($enclosure);
+			$filesArray[] = $enclosureInfoArray;		
+		}
+		try {
+			insert_files_for_item($o_item, 'Url', $filesArray);	
+		} catch (Exception $e) {
+			echo "insert fail";
+		}
+		
+
+
  	} 	
  	
  	private function _buildFeedItemItemTypeData($sp_item, $o_item)
@@ -180,9 +196,17 @@ class FeedImporter_Import extends Omeka_Record
 
  	}
 
-	private function _buildMediaFileMetaData($sp_item)
+	private function _buildMediaFileMetaData($enclosure)
 	{
+ 		$elementTextsArray = array('Dublin Core');
+		$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$enclosure->get_title(), 'html'=>false);
+		$elementTextsArray['Dublin Core']['Type'][] = array('text'=>$enclosure->get_type(), 'html'=>false);				
+		foreach((array) $enclosure->get_categories() as $tag) {
+				$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tag, 'html'=>false);
+			
+		}
 		
+		return $elementTextsArray;	
 	}
 
 
