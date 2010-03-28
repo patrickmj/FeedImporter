@@ -29,6 +29,15 @@ class FeedImporter_Import extends Omeka_Record
  		$hasError = false;
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
  		$this->fi_feed = $db->getTable('FeedImporter_Feed')->find($this->feed_id);
+ 		
+ 		if($this->fi_feed->map_tags) {
+ 			$this->tagsMap = unserialize($this->fi_feed->tags_map);
+ 		}
+ 		
+ 		if($this->fi_feed->map_authors) {
+ 			$this->authorsMap = unserialize($this->fi_feed->authors_map);
+ 		}
+ 		 		
  		$sp_feed = new SimplePie();
 		$sp_feed->set_feed_url($this->fi_feed->feed_url);		 
 		// Run SimplePie.
@@ -98,7 +107,14 @@ class FeedImporter_Import extends Omeka_Record
  		
  		$elementTextsArray = array('Dublin Core');
 		$title = $sp_item->get_title();
-		$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$title, 'html'=>false); 
+		$permalink = $sp_item->get_permalink();
+		if($this->fi_feed->items_linkback) {
+			$titleHTML = "<a href='$permalink'>$title</a>";
+			$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$title, 'html'=>true);
+		} else {
+			$elementTextsArray['Dublin Core']['Title'][] = array('text'=>$title, 'html'=>false);	
+		}
+		 
 		if($this->fi_feed->content_as_description) {			
 			$desc = substr($sp_item->get_description() , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
@@ -106,40 +122,52 @@ class FeedImporter_Import extends Omeka_Record
 		
 		if($this->fi_feed->tags_as_subjects) {
 			foreach($sp_item->get_categories() as $tag) {
-				if($this->fi_feed->tags_linkback) {
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tag, 'html'=>false);
+				if($this->fi_feed->map_tags) {
+					$tagLabel = $this->_mapTagLabel($tag->get_label());
 				} else {
-					// how does SimplePie report back tag info?
+					$tagLabel = $tag->get_label();
+				}
+				if($this->fi_feed->tags_linkback) {
+					//TODO: double-check sp category methods
 					$scheme = $tag->get_scheme();
-					$tagHTML = "<a href='" . $scheme . $tag . "' target='_blank'>$tag</a>";					
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);
+					$tagHTML = "<a href='" . $scheme . $tagLabel . "' target='_blank'>$tagLabel</a>";					
+					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);					
+				} else {
+					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagLabel, 'html'=>false);					
 				}
 			}
 		}
 		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $sp_item->get_title() . "</a>";
 		$elementTextsArray['Dublin Core']['Relation'][] = array('text'=>$related, 'html'=>true);
 		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
+		
+		if($this->fi_feed->author_as_creator) {
+			$author = $sp_item->get_author();
+			//TODO: how does simplepie work with the author object?
+			if($this->fi_feed->map_authors) {
+				$authorName = $this->_mapAuthorName($author->get_name());				
+			} else {
+				$authorName = $author->get_name();
+			}				
+			$elementTextsArray['Dublin Core']['Creator'][] = array('text'=>$authorName(), 'html'=>false);
+		}		
+		
 		return $elementTextsArray;		
  	}
  	
  	private function _needsImport($sp_item)
  	{
- 		return true;
+ 		
  		
  		if ($this->_isImported($sp_item)) {
  			return false;
- 		}
- 		
- 		
- 		// check if date is in period for import
- 		
- 		if($this->fi_feed->import_start_time < $item->get_date() && $item->get_date() < $this->fi_feed->import_end_time) {
+ 		} 		
+ 		// check if date is in period for import 		
+ 		if( $this->fi_feed->import_start_time < $item->get_date() && $item->get_date() < $this->fi_feed->import_end_time) {
  			return true;
- 		} else {
- 			return false;
- 		}
+ 		} 	
  		
- 		
+ 		return true;	
  	}
  	
  	private function _isImported($sp_item)
@@ -209,7 +237,16 @@ class FeedImporter_Import extends Omeka_Record
 		return $elementTextsArray;	
 	}
 
-
+	private function _mapTagLabel($tagLabel)
+	{
+		return $this->tagsMap[$tagLabel] ? $this->tagsMap[$tagLabel] : $tagLabel ;
+		
+	}
+	
+	private function _mapAuthorName($authorName)
+	{
+		return $this->authorsMap[$authorName] ? $this->authorsMap[$authorName] : $authorName ;
+	}
 
 }
 ?>

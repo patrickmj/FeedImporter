@@ -41,7 +41,8 @@
 			// Run SimplePie.
 			$feed->init();
 			if($feed->error() ) {
-				$this->flash($feed->error() );				
+				$this->flash($feed->error() );
+				//return here?
 			}
 			$debug->title = $feed->get_title();
 			$debug->description = $feed->get_description();
@@ -54,7 +55,9 @@
  		}
 //create a new collection if needed 		 		
  		if($_POST['new_collection']) {
- 			//$collectionID = $this->_createCollectionFromFeed($feed);
+ 			//TODO:  need some fancy error handling here for if the feed is unavailable
+ 			
+ 			$record->collection_id = $this->_createCollectionFromFeed($feed);
  		}
         try {
             if ($record->saveForm($_POST)) {
