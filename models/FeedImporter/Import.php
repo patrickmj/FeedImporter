@@ -54,11 +54,11 @@ class FeedImporter_Import extends Omeka_Record
 					$newImportedItem->item_id = $newOmekaItem->id;
 					$newImportedItem->import_id = $this->id;
 					$newImportedItem->sp_id = $sp_item->get_id(true); //md5 hashes the post
-					$newImportedItem->permalink = $sp_item->get_permalink();
-					//TODO: check for successful save before incrementing the imported_items_count
+					$newImportedItem->permalink = $sp_item->get_permalink();					
 					$newImportedItem->save();
+					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
 					//$this->_doFileImportForItem($sp_item);
-					//$debug .= "<br/>" . $sp_item->get_title();				
+								
 				}
 			}				
 		}
@@ -75,7 +75,9 @@ class FeedImporter_Import extends Omeka_Record
  		//check settings against FeedImporterFeed settings for what to do with everything
  		$metadataArray = array();
  		$metadataArray['collection_id'] = $this->fi_feed->collection_id;
- 		$metadataArray['item_type_id'] = $this->fi_feed->item_type_id;
+ 		//TODO: make Omeka Document the default item type
+ 		$metadataArray['item_type_id'] = 1; // just temporary until I build the UI to change this
+ 		//$metadataArray['item_type_id'] = $this->fi_feed->item_type_id;
  		if($this->fi_feed->tags_as_tags) {
  			$tags = $item->get_tags();
  			$tagsString = "";
@@ -163,9 +165,19 @@ class FeedImporter_Import extends Omeka_Record
  		$media = $sp_item->get_media(); 		
  	} 	
  	
- 	private function _buildFeedItemItemTypeData($sp_item)
+ 	private function _buildFeedItemItemTypeData($sp_item, $o_item)
  	{
+ 		$elTable = get_db()->getTable('Element');
  		
+ 		
+ 		//TODO: need a field on Feed for item_type_content_element
+ 		//for now, pretend it's Text
+ 		
+ 		$contentElementName = 'Text';
+ 		$contentElement = $elTable->findByElementSetNameAndElementName('Item Type Metadata', $contentElementName);
+ 		$o_item->addTextForElement($contentElement, $sp_item->get_content(), true);
+ 		$o_item->saveElementTexts();
+
  	}
 
 	private function _buildMediaFileMetaData($sp_item)

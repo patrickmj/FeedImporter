@@ -23,15 +23,7 @@
  	{
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
 
-/*
-array(
-      'name'       => [string], 
-      'description'=> [string], 
-      'public'     => [true|false], 
-      'featured'   => [true|false]
-      'collectors' => [array of entities, entity ids, or entity property arrays]
-  )
-*/
+
    		
  		$feed = new SimplePie();
  		
@@ -40,7 +32,7 @@ array(
         
         $record = new FeedImporter_Feed();
  		//do some pre-processing 
- 		//create a new collection if needed
+ 		
  		
  		if($_GET['feed_url']) {
  			$feed_url = $_GET['feed_url'];
@@ -60,7 +52,7 @@ array(
 			
         	$this->view->assign(array($varName=>$record));
  		}
- 		 		
+//create a new collection if needed 		 		
  		if($_POST['new_collection']) {
  			//$collectionID = $this->_createCollectionFromFeed($feed);
  		}
