@@ -74,6 +74,7 @@ function feed_importer_install()
 
 	$sql = "CREATE TABLE IF NOT EXISTS `{$db->prefix}feed_importer_imported_items` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `feed_id` int(10) unsigned NOT NULL, 		
   `import_id` int(10) unsigned NOT NULL,
   `permalink` text COLLATE utf8_unicode_ci ,
   `sp_id` int(10) unsigned ,

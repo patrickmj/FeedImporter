@@ -9,6 +9,7 @@
  class FeedImporter_ImportedItem extends Omeka_Record
  {
 	public $id;
+	public $feed_id;
     public $import_id;
     public $item_id;
     public $permalink;
@@ -24,24 +25,14 @@
 	    return $this->import_id;
 	}
 	
-	public function isImported($sp_item)
-	{
-		
-	}
+
 	
 	public function findByImportId($import_id)
 	{
 		
 	}
 	
-	
-	
-	private function _permalinkExists($permalink) 
-	{
-		
-	}
-	
-	private function _sp_idExists($sp_id)
+	public function findByFeedId($feed_id)
 	{
 		
 	}

@@ -1,6 +1,6 @@
 <?php
 $tabs = array();
-
+$db = get_db();
 $basics =  "<div class='feed-importer-field'><label>Feed URL</label>" . text(array('name'=>'feed_url', 'value'=>$feedimporter_feed->feed_url), $feedimporter_feed->feed_url) . "</div>";
 $basics .= "<div class='feed-importer-field'><label>Feed Title</label>" . text(array('name'=>'feed_title', 'value'=>$feedimporter_feed->feed_title), $feedimporter_feed->feed_title) . "</div>"; 
 $basics .= "<div class='feed-importer-field'><label>Feed Description</label>" . textarea(array('name'=>'feed_description', 'value'=>$feedimporter_feed->feed_description, 'rows'=>'5', 'cols'=>'50'), $feedimporter_feed->feed_description) . "</div>";
@@ -30,12 +30,46 @@ $tabs['Feed Settings'] = $feedSettings;
 //itemTypeHandling tells what Item Type to use for imported items, and what Element to use if content is imported
 //TODO: ajax to return the right options for element based on choice of item type
 
-$itemTypes = get_db()->getTable('ItemType')->findAll();
-$itemTypesArray = array();
-foreach($itemTypes as $itemType) {
-	$itemTypesArray[$itemType->id] = $itemType->name;	
+$itemTypeTable = $db->getTable('ItemType');
+$itemTypesArray = $itemTypeTable->findPairsForSelectForm();
+
+//Dig up all the elements for each item type and make into <option>s for javascript to switch around when user selects an item type
+//put them into an object, then serialize it to JSON
+$itemTypeElementsObj = new stdClass();
+foreach($itemTypesArray as $id=>$name) {
+	$optionsHTML = "";	
+	$itemType = $itemTypeTable->find($id);
+	foreach($itemType->Elements as $element) {		
+		$optionsHTML .= "<option value='$element->id' label='$element->name' >$element->name</option";
+		release_object($element);
+	}
+	$itemTypeElementsObj->$id = $optionsHTML;
+	release_object($itemType);
 }
-$itemTypeHandling = "<div id='item-type' class='feed-importer-field'><label>Item Type for imported items</label>" . select(array('name'=>'item_type_id'), $itemTypesArray, $feedimporter_feed->item_type_id) . "</div>";
+
+$json = "FeedImporter.ui.itemTypeElements = " . json_encode($itemTypeElementsObj) ;
+
+$itemTypeHandling = "<script type='text/javascript'> 
+		var FeedImporter = {}; 
+		FeedImporter.ui = {};		
+		$json;		
+
+		
+		FeedImporter.ui.switchItemTypeElements = function(e) {
+		//dunno why I can't get jQuery techniques going on here'
+		var elSel = document.getElementById('content_element_id');
+		elSel.innerHTML = FeedImporter.ui.itemTypeElements[e.target.value];
+		//jQuery('#content_element_id').html(FeedImporter.ui.itemTypeElements[e.target.value]));
+		
+		
+		
+		
+						
+				
+				
+		}		
+		 </script>";
+$itemTypeHandling .= "<div onchange='FeedImporter.ui.switchItemTypeElements(event)' id='item-type' class='feed-importer-field'><label>Item Type for imported items</label>" . select(array('name'=>'item_type_id'), $itemTypesArray, $feedimporter_feed->item_type_id) . "</div>";
 $itemTypeHandling .= "<div id='content-element' class='feed-importer-field'><label>Element for item content</label>" . select(array('name'=>'content_element_id'), array(), $feedimporter_feed->content_element_id ) .  "<p class='explanation'>Select Item Type above to update options.</p></div>";
 
 $tabs['Item Type Handling'] = $itemTypeHandling;

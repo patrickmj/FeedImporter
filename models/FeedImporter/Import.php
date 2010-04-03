@@ -55,18 +55,23 @@ class FeedImporter_Import extends Omeka_Record
 			foreach ($sp_feed->get_items() as $sp_item) {
 	
 				if( $this->_needsImport($sp_item)) {
-					
+				echo "start import<br/>";	
 					$metadataArray = $this->_buildFeedItemMetadata($sp_item);
-					$elementTextsArray = $this->_buildFeedItemElementTexts($sp_item); 
+					echo "build feed item element texts<br/>";
+					$elementTextsArray = $this->_buildFeedItemElementTexts($sp_item);
+					echo "insert item<br/>"; 					
 					$newOmekaItem = insert_item($metadataArray, $elementTextsArray);
 					$newImportedItem = new FeedImporter_ImportedItem();
 					$newImportedItem->item_id = $newOmekaItem->id;
+					$newImportedItem->feed_id = $this->fi_feed->id;
 					$newImportedItem->import_id = $this->id;
 					$newImportedItem->sp_id = $sp_item->get_id(true); //md5 hashes the post
 					$newImportedItem->permalink = $sp_item->get_permalink();					
 					$newImportedItem->save();
+					echo "build feed item item type data<br/>";
 					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
 					if($this->fi_feed->import_media) {
+						echo "import media";
 						$this->_doFileImportForItem($sp_item, $newOmekaItem);
 					}		
 				}
@@ -86,13 +91,13 @@ class FeedImporter_Import extends Omeka_Record
  		$metadataArray = array();
  		$metadataArray['collection_id'] = $this->fi_feed->collection_id;
  		//TODO: make Omeka Document the default item type
- 		$metadataArray['item_type_id'] = 1; // just temporary until I build the UI to change this
- 		//$metadataArray['item_type_id'] = $this->fi_feed->item_type_id;
+ 		//$metadataArray['item_type_id'] = 1; // just temporary until I build the UI to change this
+ 		$metadataArray['item_type_id'] = $this->fi_feed->item_type_id;
  		if($this->fi_feed->tags_as_tags) {
- 			$tags = $item->get_tags();
+ 			$tags = $sp_item->get_categories();
  			$tagsString = "";
  			foreach($tags as $tag) {
- 				$tagsString .= $tag . ",";
+ 				$tagsString .= $tag->get_label() . ",";
  			}
  			$metadataArray['tags'] = $tagsString;
  		}	
@@ -105,7 +110,7 @@ class FeedImporter_Import extends Omeka_Record
  		//later passes will build the advanced mapping to any available Element Set
  		//super-advanced optionn will stuff the data in as RDFa someday
  		
- 		$elementTextsArray = array('Dublin Core');
+ 		$elementTextsArray = array();
 		$title = $sp_item->get_title();
 		$permalink = $sp_item->get_permalink();
 		if($this->fi_feed->items_linkback) {
@@ -130,8 +135,13 @@ class FeedImporter_Import extends Omeka_Record
 				if($this->fi_feed->tags_linkback) {
 					//TODO: double-check sp category methods
 					$scheme = $tag->get_scheme();
-					$tagHTML = "<a href='" . $scheme . $tagLabel . "' target='_blank'>$tagLabel</a>";					
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);					
+					if($scheme && ($scheme!='')) {
+						$tagHTML = "<a href='" . $scheme . $tagLabel . "' target='_blank'>$tagLabel</a>";
+						$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);
+					} else {
+						$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagLabel, 'html'=>false);	
+					}
+					
 				} else {
 					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagLabel, 'html'=>false);					
 				}
@@ -140,16 +150,18 @@ class FeedImporter_Import extends Omeka_Record
 		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $sp_item->get_title() . "</a>";
 		$elementTextsArray['Dublin Core']['Relation'][] = array('text'=>$related, 'html'=>true);
 		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
-		
+		$elementTextsArray['Dublin Core']['Creator'] = array();
 		if($this->fi_feed->author_as_creator) {
-			$author = $sp_item->get_author();
-			//TODO: how does simplepie work with the author object?
-			if($this->fi_feed->map_authors) {
-				$authorName = $this->_mapAuthorName($author->get_name());				
-			} else {
-				$authorName = $author->get_name();
-			}				
-			$elementTextsArray['Dublin Core']['Creator'][] = array('text'=>$authorName(), 'html'=>false);
+			$authors = $sp_item->get_authors();
+			foreach($authors as $author) {
+				if($this->fi_feed->map_authors) {
+					$authorName = $this->_mapAuthorName($author->get_name());
+				} else {
+					$authorName = $author->get_name();
+				}				
+				$elementTextsArray['Dublin Core']['Creator'][] = array('text'=>$authorName, 'html'=>false);								
+			}
+
 		}		
 		
 		return $elementTextsArray;		
@@ -157,7 +169,7 @@ class FeedImporter_Import extends Omeka_Record
  	
  	private function _needsImport($sp_item)
  	{
- 		
+ 		return true; //while developing
  		
  		if ($this->_isImported($sp_item)) {
  			return false;
@@ -172,6 +184,7 @@ class FeedImporter_Import extends Omeka_Record
  	
  	private function _isImported($sp_item)
  	{ 		
+ 		$db = get_db();
 		$t = $db->getTable('FeedImporter_ImportedItem');
 		$sp_id = $sp_item->get_id();
 		$permalink = $sp_item->get_permalink();

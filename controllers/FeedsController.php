@@ -22,8 +22,6 @@
  	public function addAction()
  	{
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
-
-
    		
  		$feed = new SimplePie();
  		
@@ -40,6 +38,8 @@
 			$feed->set_feed_url($feed_url);		 
 			// Run SimplePie.
 			$feed->init();
+			$feed->handle_content_type();
+			
 			if($feed->error() ) {
 				$this->flash($feed->error() );
 				//return here?
@@ -55,9 +55,11 @@
  		}
 //create a new collection if needed 		 		
  		if($_POST['new_collection']) {
- 			//TODO:  need some fancy error handling here for if the feed is unavailable
- 			
- 			$record->collection_id = $this->_createCollectionFromFeed($feed);
+			$feed->set_feed_url($_POST['feed_url']);		 
+			// Run SimplePie.
+			$feed->init();
+			$feed->handle_content_type(); 			
+ 			$_POST['collection_id'] = $this->_createCollectionFromFeed($feed);	 		
  		}
         try {
             if ($record->saveForm($_POST)) {
@@ -72,6 +74,14 @@
  	
  	public function editAction()
  	{
+ 		if($_POST['new_collection']) {
+ 			$feed = new SimplePie();
+			$feed->set_feed_url($_POST['feed_url']);			
+			$feed->init();
+			$feed->handle_content_type(); 			
+ 			$_POST['collection_id'] = $this->_createCollectionFromFeed($feed);	 		
+ 		} 		
+ 		
  		parent::editAction();
  	}
  	
@@ -112,8 +122,9 @@
  		$metadata = array();
  		$metadata['name'] = $feed->get_title();
  		$metadata['description'] = $feed->get_description();
- 		$newCollection = insert_collection($metadata);
- 		$feedimporterfeed->collection_id = $newCollection->id;
+
+ 		
+ 		$newCollection = insert_collection($metadata);	
  		return $newCollection->id;
  	}
  }
