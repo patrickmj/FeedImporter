@@ -6,7 +6,7 @@
  * Window - Preferences - PHPeclipse - PHP - Code Templates
  */
  
- class FeedImporter_ImportProcess extends ProcessAbstract
+ class FeedImporter_UndoImportProcess extends ProcessAbstract
 {
     public function run($args)
     {
@@ -22,7 +22,7 @@
 		
         // do the import
         if ($import) {
-            $import->doImport();
+            $import->undoImport();
         }
     }
 }

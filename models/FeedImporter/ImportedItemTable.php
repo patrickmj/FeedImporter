@@ -22,10 +22,9 @@ class FeedImporter_ImportedItemTable extends Omeka_Db_Table
 	}
 	
 	public function countItemsFromImportId($import_id) 
-	{
-		//there must be a more efficient way to do this!
-		$items = $this->findByImportId($import_id);
-		return count($items);
+	{		
+		$sel = $this->getSelectForCount()->where("import_id = ?", $import_id);
+		return $this->fetchOne($sel);
 	}
 }
 ?>

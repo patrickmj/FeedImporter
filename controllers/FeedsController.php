@@ -97,10 +97,10 @@
 	{
 		
 		$feed = $this->findById();
-		$feed_id = $feed->id;
+		
 		//make a new FI_Import
 		$newImport = new FeedImporter_Import();
-		$newImport->feed_id = $feed_id;
+		$newImport->feed_id = $feed->id;
 		$newImport->collection_id = $feed->collection_id;
 		$newImport->status = STATUS_IN_PROGRESS_IMPORT;			
 		$newImport->created = date('Y-m-d G:i:s');
@@ -113,7 +113,7 @@
         
         ProcessDispatcher::startProcess('FeedImporter_ImportProcess', $user, $args);            			
 		$this->view->assign(array('import'=>$newImport, 'feed'=>$feed));
-		
+		$this->redirect->gotoUrl('feeds/imports/show/' . $newImport->id);
 
 	}
  	

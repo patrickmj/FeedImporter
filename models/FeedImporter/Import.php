@@ -13,6 +13,8 @@ class FeedImporter_Import extends Omeka_Record
 	public $created;
 	private $fi_feed;
 
+	
+
 	const STATUS_IN_PROGRESS_IMPORT = 'Import In Progress';
     const STATUS_COMPLETED_IMPORT = 'Completed Import';
     const STATUS_IN_PROGRESS_UNDO_IMPORT = 'Undo Import In Progress';
@@ -20,6 +22,51 @@ class FeedImporter_Import extends Omeka_Record
     const STATUS_IMPORT_ERROR_INVALID_FILE_DOWNLOAD = 'Import Error: Invalid File Download';
 	const STATUS_FEED_ERRORS = 'Feed Error';
 
+
+	public function getItems()
+	{
+		$iiTable = $this->getDb()->getTable('FeedImporter_ImportedItem');
+		$itemTable = $this->getDb()->getTable('Item');
+		$importedItems = $iiTable->findByImportId($this->id);
+		$items = array();
+		foreach($importedItems as $importedItem) {
+			$items[] = $itemTable->find($importedItem->item_id);
+			release_object($importedItem);
+		}
+		return $items;
+	}
+
+	public function undoImport()
+	{
+	    // first save the import object in the database
+        //$this->status = self::STATUS_IN_PROGRESS_UNDO_IMPORT;
+	    $this->status = "wtf";
+	    $this->save();
+		$itemTable = $this->getDb()->getTable('Item');
+		$this->status = "Got item table";
+		$this->save();
+		$importedItemTable = $this->getDb()->getTable('FeedImporter_ImportedItem');
+		$this->status = "got imported item table";
+		$this->save();
+        $importedItems = $importedItemTable->findByImportId($this->id);
+        $this->status = "got imported items";
+        $this->save();
+        while(count($importedItems) > 0) {
+            foreach($importedItems as $importedItem) {
+                
+                $item = $itemTable->find($importedItem->item_id);
+                if ($item) {
+                    $item->delete();
+                }
+                $importedItem->delete();
+            }            
+            $importedItems = $importedItemTable->findByImportId($this->id);        
+        } 
+        
+        $this->status = self::STATUS_COMPLETED_UNDO_IMPORT;
+        $this->save();
+		return true;
+	}
 
 
 
@@ -29,10 +76,8 @@ class FeedImporter_Import extends Omeka_Record
  		$hasError = false;
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
  		$this->fi_feed = $db->getTable('FeedImporter_Feed')->find($this->feed_id);
- 		
- 		if($this->fi_feed->map_tags) {
- 			$this->tagsMap = unserialize($this->fi_feed->tags_map);
- 		}
+ 		$this->fi_tags = $db->getTable('FeedImporter_TagConfig')->findByFeedId($this->feed_id, true);
+		//$this->fi_tags = array();
  		
  		if($this->fi_feed->map_authors) {
  			$this->authorsMap = unserialize($this->fi_feed->authors_map);
@@ -52,14 +97,11 @@ class FeedImporter_Import extends Omeka_Record
 		}				
 		
 		if(! $hasError) {
-			foreach ($sp_feed->get_items() as $sp_item) {
-	
+			foreach ($sp_feed->get_items() as $sp_item) {	
 				if( $this->_needsImport($sp_item)) {
-				echo "start import<br/>";	
-					$metadataArray = $this->_buildFeedItemMetadata($sp_item);
-					echo "build feed item element texts<br/>";
-					$elementTextsArray = $this->_buildFeedItemElementTexts($sp_item);
-					echo "insert item<br/>"; 					
+					$this->processItemTags($sp_item);
+					$metadataArray = $this->_buildFeedItemMetadata($sp_item);				
+					$elementTextsArray = $this->_buildFeedItemElementTexts($sp_item);				 					
 					$newOmekaItem = insert_item($metadataArray, $elementTextsArray);
 					$newImportedItem = new FeedImporter_ImportedItem();
 					$newImportedItem->item_id = $newOmekaItem->id;
@@ -67,18 +109,15 @@ class FeedImporter_Import extends Omeka_Record
 					$newImportedItem->import_id = $this->id;
 					$newImportedItem->sp_id = $sp_item->get_id(true); //md5 hashes the post
 					$newImportedItem->permalink = $sp_item->get_permalink();					
-					$newImportedItem->save();
-					echo "build feed item item type data<br/>";
+					$newImportedItem->save();				
 					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
-					if($this->fi_feed->import_media) {
-						echo "import media";
+					if($this->fi_feed->import_media) {				
 						$this->_doFileImportForItem($sp_item, $newOmekaItem);
-					}		
+					}					
 				}
 			}				
 		}
-	
- 		//$this->view->debug = $debug;
+
  		$this->status = STATUS_COMPLETED_IMPORT ;
  		$this->save();
  		return true; 	
@@ -89,10 +128,10 @@ class FeedImporter_Import extends Omeka_Record
  	{
  		//check settings against FeedImporterFeed settings for what to do with everything
  		$metadataArray = array();
- 		$metadataArray['collection_id'] = $this->fi_feed->collection_id;
+ 		$metadataArray['collection_id'] = $this->getCollectionId($sp_item);
  		//TODO: make Omeka Document the default item type
  		//$metadataArray['item_type_id'] = 1; // just temporary until I build the UI to change this
- 		$metadataArray['item_type_id'] = $this->fi_feed->item_type_id;
+ 		$metadataArray['item_type_id'] = $this->getItemTypeId($sp_item);
  		if($this->fi_feed->tags_as_tags) {
  			$tags = $sp_item->get_categories();
  			$tagsString = "";
@@ -165,6 +204,100 @@ class FeedImporter_Import extends Omeka_Record
 		}		
 		
 		return $elementTextsArray;		
+ 	}
+
+
+ 	public function processItemTags($sp_item)
+ 	{
+ 		$tags = $sp_item->get_categories();
+ 		foreach($tags as $tag) {
+ 			$tagName = trim($tag->get_label());
+ 			if(array_key_exists($tagName, $this->fi_tags)) { 				
+ 				$this->fi_tags[$tagName]->count++;
+ 				$this->fi_tags[$tagName]->save();
+ 			} else {
+ 				$newTC = new FeedImporter_TagConfig; 				
+ 				$newTC->scheme = $tag->get_scheme();
+ 				$newTC->original_name = $tagName;
+ 				$newTC->feed_id = $this->feed_id;
+ 				$newTC->created = date('Y-m-d G:i:s');
+ 				$this->fi_tags[$tagName] = $newTC;
+ 				$newTC->save(); 			
+ 			}
+ 		}
+ 	}
+
+ 	
+ 	public function getOmekaTags($sp_item)
+ 	{
+ 		$sp_tagNames = $this->_getItemTagNames();
+ 		$o_tagsArray = array();
+ 		
+ 		foreach($this->sp_tagNames as $tagName) {
+ 			if($this->fi_feed->tags_as_tags) {
+ 				$o_tagsArray[] = $this->fi_tags[$tagName]->getName();
+ 			}
+ 			
+ 			if($this->fi_tags[$tagName]->tags_map) {
+ 				$tagsMap = unserialize($this->fi_tags[$tagName]->tags_map);
+ 				$o_tagsArray = array_merge($o_tagsArray, array_values($tagsMap) );
+ 			}
+ 		}	
+ 		return implode(',', $o_tagsArray);
+ 	}
+ 	
+ 	public function getCollectionId($sp_item)
+ 	{
+ 		$collectionId = $this->fi_feed->collection_id;
+ 		$tagNames = $this->getItemTagNames($sp_item);
+ 		$tempCollectionId = -1;
+ 		$currPriority = -1;
+ 		foreach($tagNames as $tagName) {
+ 			if(array_key_exists($tagName, $this->fi_tags)   
+ 				&& $this->fi_tags[$tagName]->collection_id
+ 				&& ($this->fi_tags[$tagName]->collection_id_priority > $currPriority)
+ 			
+ 				) {
+ 				$priority = $this->fi_tags[$tagName]->collection_id_priority;
+ 				$tempCollectionId = $this->fi_tags[$tagName]->collection_id;
+ 			}
+ 		}
+ 		if($tempCollectionId != -1 ) {
+ 			$collectionId = $tempCollectionId;
+ 		}
+ 		return $collectionId;
+ 	}
+ 	
+ 	public function getItemTypeId($sp_item)
+ 	{
+ 		$itemTypeId = $this->fi_feed->item_type_id;
+ 		$tagNames = $this->getItemTagNames($sp_item);
+ 		$tempItemTypeId = -1;
+ 		$currPriority = -1;
+ 		foreach($tagNames as $tagName) {
+ 			if(array_key_exists($tagName, $this->fi_tags)   
+ 				&& $this->fi_tags[$tagName]->item_type_id
+ 				&& ($this->fi_tags[$tagName]->item_type_id_priority > $currPriority)
+ 			
+ 				) {
+ 				$priority = $this->fi_tags[$tagName]->item_type_id_priority;
+ 				$tempCollectionId = $this->fi_tags[$tagName]->item_type_id_priority;
+ 			}
+ 		}
+ 		if($tempItemTypeId != -1 ) {
+ 			$itemTypeId = $tempItemTypeId;
+ 		}
+ 		return $itemTypeId; 		
+ 	}
+ 	
+ 	private function _getItemTagNames($sp_item)
+ 	{
+ 		$tagNames = array();
+ 		$itemTags = $sp_item->get_categories();
+ 		foreach($itemTags as $tag) {
+ 			$tagNames[] = trim($tag->get_label());
+ 		}
+ 		return $tagNames;
  	}
  	
  	private function _needsImport($sp_item)
@@ -250,6 +383,9 @@ class FeedImporter_Import extends Omeka_Record
 		return $elementTextsArray;	
 	}
 
+	
+
+
 	private function _mapTagLabel($tagLabel)
 	{
 		return $this->tagsMap[$tagLabel] ? $this->tagsMap[$tagLabel] : $tagLabel ;
@@ -261,5 +397,6 @@ class FeedImporter_Import extends Omeka_Record
 		return $this->authorsMap[$authorName] ? $this->authorsMap[$authorName] : $authorName ;
 	}
 
+	
 }
 ?>

@@ -16,6 +16,8 @@ class FeedImporter_ImportTable extends Omeka_Db_Table
 		$sel = $this->getSelect()->where("feed_id = ?", $feed_id)->order('created DESC') ;
 		return $this->fetchObjects($sel);		
 	}
+	
+	
 }
 
 ?>

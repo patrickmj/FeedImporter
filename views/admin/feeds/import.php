@@ -2,7 +2,7 @@
 
 
 $head = array('body_class' => 'feed-importer primary', 
-              'title'      => 'Feed Importer -- Importing');
+              'title'      => 'Feed Importer -- Import');
 head($head);
 
 ?>
@@ -15,6 +15,7 @@ head($head);
 <div id="primary">
 <p>Started: <?php echo $import->created; ?></p>
 <p>Status: <?php echo $import->status; ?></p>
+<p>Go back to the Feeds page the check status</p>
 </div>
 
 

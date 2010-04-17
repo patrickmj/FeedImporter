@@ -48,6 +48,7 @@ print_r($debug);
 <?php if($feedimporter_feeds): ?>
 		
 <?php
+
 	
 	foreach($feedimporter_feeds as $feed):
 	
@@ -74,7 +75,7 @@ print_r($debug);
 				}
 			?>
 		</td>
-		<td><?php echo $importCount ?></td>
+		<td><?php echo $feed->feedItemCount() ?></td>
 		<td><?php echo $lastImport->created ; ?></td>		
 		<td><?php echo $lastImport->status; ?></td>
 		<td><a class="fi_import" href="<?php echo uri('feeds/import/' . $feed->id) ?>">Do Import Now</a></td>

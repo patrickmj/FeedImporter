@@ -5,8 +5,9 @@ $basics =  "<div class='feed-importer-field'><label>Feed URL</label>" . text(arr
 $basics .= "<div class='feed-importer-field'><label>Feed Title</label>" . text(array('name'=>'feed_title', 'value'=>$feedimporter_feed->feed_title), $feedimporter_feed->feed_title) . "</div>"; 
 $basics .= "<div class='feed-importer-field'><label>Feed Description</label>" . textarea(array('name'=>'feed_description', 'value'=>$feedimporter_feed->feed_description, 'rows'=>'5', 'cols'=>'50'), $feedimporter_feed->feed_description) . "</div>";
 $basics .= "<div class='feed-importer-field'><label>Collection for items in feed</label>" . select_collection(array('name'=>'collection_id', 'value'=>$feedimporter_feed->collection_id), $feedimporter_feed->collection_id);
-$basics .= "<p>Or create new collection from feed info ". checkbox(array('name'=>'new_collection')) . "</div>";
-
+$basics .= "<p>Or create new collection from feed info ". checkbox(array('name'=>'new_collection')) ;
+$basics .= ajax_create_dialog(array('type'=>'Collection', 'target'=>'collection_id'));
+$basics .= "</div>";
 
 
 $tabs['Basics'] = $basics;

@@ -67,8 +67,7 @@ function feed_importer_install()
   `status` text COLLATE utf8_unicode_ci,
   `sp_error` text COLLATE utf8_unicode_ci,
   `collection_id` int(10) unsigned ,
-  PRIMARY KEY (`id`),
-  KEY `id` (`id`)
+  PRIMARY KEY (`id`)  
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
 	$db->exec($sql);
 
@@ -77,24 +76,33 @@ function feed_importer_install()
   `feed_id` int(10) unsigned NOT NULL, 		
   `import_id` int(10) unsigned NOT NULL,
   `permalink` text COLLATE utf8_unicode_ci ,
-  `sp_id` int(10) unsigned ,
+  `sp_id` text COLLATE utf8_unicode_ci,
   `item_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `id` (`id`)
+  PRIMARY KEY (`id`)  
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
 
 	$db->exec($sql);
-//TODO: how to check whether it exists or not?
 
-	try {
-		insert_item_type(array('name'=>'Web Page', 'description'=>'A single web page'));	
-	} catch(Exception $e) {
-		//handle the case where a 'Web Page' has already been created
-	}
-	
-//lookup the elementInfos I want to pass in their IDs
-// see globals.php line 455 insert_item_type
 
+	$sql = "CREATE TABLE IF NOT EXISTS `{$db->prefix}feed_importer_tag_configs` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `original_name` tinytext COLLATE utf8_unicode_ci NOT NULL,
+  `pref_name` tinytext COLLATE utf8_unicode_ci NULL,
+  `scheme` tinytext COLLATE utf8_unicode_ci NULL,
+  `collection_id` int(10) unsigned NULL,
+  `collection_id_priority` int(10) unsigned NULL,		  		
+  `item_type_id` int(10) unsigned NULL,
+  `item_type_id_priority` int(10) unsigned NULL,  
+  `feed_id` int(10) unsigned NOT NULL,
+  `created` date NOT NULL,
+  `count` int(10) unsigned NULL,
+  `elements_map` mediumtext COLLATE utf8_unicode_ci NULL,
+  `tags_map` mediumtext COLLATE utf8_unicode_ci NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;";
+
+
+	$db->exec($sql);
 
 }
 
@@ -108,7 +116,10 @@ function feed_importer_uninstall()
 	$db->exec($sql);
 
 	$sql = "DROP TABLE IF EXISTS `{$db->prefix}feed_importer_imported_items`";
-	$db->exec($sql);	
+	$db->exec($sql);
+	
+	$sql = "DROP TABLE IF EXISTS `{$db->prefix}feed_importer_tag_configs`";
+	$db->exec($sql);			
 }
 
 
@@ -147,8 +158,40 @@ function feed_importer_define_routes($router)
 	        )
 	    )
 	);	
-	
-	
+	$router->addRoute(
+	    'feed_importer_import_action',
+	    new Zend_Controller_Router_Route(
+	        'feeds/imports/:action/:id', 
+	        array(
+	            'module'       => 'feed-importer', 
+	            'controller'   => 'imports',  
+	            'id'           => '/d+'
+	        )
+	    )
+	);		
+	$router->addRoute(
+	    'feed_importer_tag_config_action',
+	    new Zend_Controller_Router_Route(
+	        'feeds/:feed_id/tags/:action', 
+	        array(
+	            'module'       => 'feed-importer', 
+	            'controller'   => 'tag-configs',  
+	        )
+	    )
+	);
+
+
+	$router->addRoute(
+	    'feed_importer_tag_config_action_pages',
+	    new Zend_Controller_Router_Route(
+	        'feeds/:feed_id/tags/browse/page/:page', 
+	        array(
+	            'module'       => 'feed-importer', 
+	            'controller'   => 'tag-configs',  
+	        )
+	    )
+	);	
+		
 }
 function feed_importer_admin_theme_header($request) 
 {

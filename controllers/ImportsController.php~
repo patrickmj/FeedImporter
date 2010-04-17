@@ -17,6 +17,8 @@ class FeedImporter_ImportsController extends Omeka_Controller_Action
     
 	public function undoimportAction()
     {
+//TODO: check if this is really found-about
+
 		$fi_import = $this->findById();
         // change the status of the import
         $fi_import->status = FeedImporter_Import::STATUS_IN_PROGRESS_UNDO_IMPORT;
