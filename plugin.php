@@ -187,14 +187,28 @@ function feed_importer_define_routes($router)
 	        'feeds/:feed_id/tags/browse/page/:page', 
 	        array(
 	            'module'       => 'feed-importer', 
-	            'controller'   => 'tag-configs',  
+	            'controller'   => 'tag-configs',
+	            'page'		   => '/d+'
 	        )
 	    )
 	);	
-		
+	
+			
 }
 function feed_importer_admin_theme_header($request) 
 {
-	echo '<link href="' . WEB_PLUGIN . '/FeedImporter/views/common/css/feed-importer.css" media="screen" rel="stylesheet" />';
+	
+	if($request->getModuleName() == 'feed-importer') {
+		switch($request->getControllerName() ) {
+			case 'tag-configs':
+				echo '<link href="' . WEB_PLUGIN . '/FeedImporter/views/common/css/tag-configs.css" media="screen" rel="stylesheet" />';
+				echo '<script type="text/javascript" src="' . WEB_PLUGIN . '/FeedImporter/views/common/js/feed-importer.js" ></script>';
+			break;
+			
+			case 'feeds':
+				echo '<link href="' . WEB_PLUGIN . '/FeedImporter/views/common/css/feed-importer.css" media="screen" rel="stylesheet" />';
+			break;			
+		}
+	}		
 }
 

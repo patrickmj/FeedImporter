@@ -163,32 +163,16 @@ class FeedImporter_Import extends Omeka_Record
 			$desc = substr($sp_item->get_description() , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
 		}
+		//build up tag-based metadata
+		$elementTextsArray = array_merge($elementTextsArray, $this->getElementTextsByTags($sp_item));
 		
-		if($this->fi_feed->tags_as_subjects) {
-			foreach($sp_item->get_categories() as $tag) {
-				if($this->fi_feed->map_tags) {
-					$tagLabel = $this->_mapTagLabel($tag->get_label());
-				} else {
-					$tagLabel = $tag->get_label();
-				}
-				if($this->fi_feed->tags_linkback) {
-					//TODO: double-check sp category methods
-					$scheme = $tag->get_scheme();
-					if($scheme && ($scheme!='')) {
-						$tagHTML = "<a href='" . $scheme . $tagLabel . "' target='_blank'>$tagLabel</a>";
-						$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagHTML, 'html'=>true);
-					} else {
-						$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagLabel, 'html'=>false);	
-					}
-					
-				} else {
-					$elementTextsArray['Dublin Core']['Subject'][] = array('text'=>$tagLabel, 'html'=>false);					
-				}
-			}
-		}
+		//build up source and relation metadata
 		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $sp_item->get_title() . "</a>";
 		$elementTextsArray['Dublin Core']['Relation'][] = array('text'=>$related, 'html'=>true);
 		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
+		
+		//build up creator metadata
+		//TODO: this should also be mapable to any element
 		$elementTextsArray['Dublin Core']['Creator'] = array();
 		if($this->fi_feed->author_as_creator) {
 			$authors = $sp_item->get_authors();
@@ -206,6 +190,33 @@ class FeedImporter_Import extends Omeka_Record
 		return $elementTextsArray;		
  	}
 
+	public function getElementTextsByTags($sp_item)
+	{
+		$linkBack = $this->fi_feed->tags_linkback;
+		$tagNames = $this->_getItemTagNames($sp_item);
+		$elTextsArray = array();
+		foreach($tagNames as $tagName){
+			if($this->fi_tags[$tagName]->skip) {
+				continue;
+			}
+			if($this->fi_feed->tags_as_subjects) {
+				$elTextsArray['Dublin Core']['Subject'][] = $this->fi_tags[$tagName]->getElementText($linkBack);
+			}
+			if($this->fi_tags[$tagName]->elements_map) {
+				$elMap = unserialize($this->fi_tags[$tagName]->elements_map);
+				foreach($elMap as $elSet=>$elements) {
+					$elMap[$elSet] = array_values($elMap[$elSet]);
+				}
+				
+				//If the more general map to DC subjects is set, remove the duplicates
+				if($this->fi_feed->tags_as_subjects) {
+					unset($elMap['Dublin Core']['Subject']);
+				}
+				$elTextsArray = array_merge($elTextsArray, $elMap);
+			}			
+		}
+		return $elTextsArray;
+	}
 
  	public function processItemTags($sp_item)
  	{

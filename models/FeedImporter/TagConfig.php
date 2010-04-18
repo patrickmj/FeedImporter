@@ -24,10 +24,18 @@ class FeedImporter_TagConfig extends Omeka_Record
 	
 	
 	
-	
-	public function getName()
+	public function getElementText($asLink = false)
 	{
-		return $this->pref_name ? $this->pref_name : $this->original_name;		
+		return array('text'=>$this->getName($asLink), 'html'=>$asLink);		
+	}
+	
+	public function getName($asLink = false)
+	{
+		$tagName =  $this->pref_name ? $this->pref_name : $this->original_name;
+		if($asLink) {
+			return "<a href='$this->scheme/$this->original_name'>$tagName</a> ";
+		}		
+		return $tagName;
 	}
 	
 	

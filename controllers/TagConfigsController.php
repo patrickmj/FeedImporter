@@ -14,7 +14,7 @@ class FeedImporter_TagConfigsController extends Omeka_Controller_Action
 	
 	public function browseAction()
 	{
-
+		//TODO: select by feed_id
 		if($_POST) {
 			foreach($_POST['tc'] as $tcId=>$data) {
 				$record = $this->getTable()->find($tcId);
@@ -30,9 +30,12 @@ class FeedImporter_TagConfigsController extends Omeka_Controller_Action
 				}				
 			}
 		}
-		$page = $this->_getParam('page');
+		$page = $this->_getParam('page', 1);
+		
 		$table = $this->getTable();
-		$fi_tags = $table->findBy(array(), 10, $page);
+		$feed_id = $this->_getParam('feed_id');
+		
+		$fi_tags = $table->findBy(array('feed_id'=>$feed_id), 10, $page);
 		$count = $table->fetchOne($table->getSelectForCount() ) ;
         /** 
          * Now process the pagination
@@ -48,7 +51,30 @@ class FeedImporter_TagConfigsController extends Omeka_Controller_Action
         
         Zend_Registry::set('pagination', $pagination);		
 		
-		$this->view->assign(array('tags'=>$fi_tags,  'debug'=>$paginator));
+		$db = get_db();
+		$elSets = $db->getTable('ElementSet')->findAll();
+		//print_r($elSets);
+		$elSetPairs = array();
+		foreach($elSets as $elSet) {
+			$elSetPairs[$elSet->id] = $elSet->name;
+			release_object($elSet);
+		}
+		
+		$tagTable = $db->getTable('Tag');  
+		$o_tags = $tagTable->fetchObjects("SELECT * FROM `tags` ORDER BY name");
+		$tagPairs = array();
+		foreach($o_tags as $o_tag) {
+			$tagPairs[$o_tag->id] = $o_tag->name;
+			release_object($o_tag);
+		}		
+		
+		$priorityArray = range(1, 3*$count + 1);
+		$this->view->assign(array('tags'=>$fi_tags, 
+									'debug'=>$pagination,
+									'elSetPairs'=>$elSetPairs,
+									'tagPairs'=>$tagPairs,
+									'priorityArray'=>$priorityArray,
+									'feed_id'=>$feed_id));
 	}	
 }
 

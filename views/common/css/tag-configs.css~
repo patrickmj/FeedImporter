@@ -1,0 +1,32 @@
+div#content {
+	width: 960px;
+	
+}
+
+div.feed-importer-element-set {
+	display: none;
+	
+}
+
+select {
+	width: 125px;
+	
+}
+
+label {
+	width: 100px;
+	
+}
+
+th > div {
+	
+	width: 100px;
+}
+
+.feed-importer-help {
+	cursor: pointer;
+	color: #6996C3;
+	padding-left: 20px;
+	background-image: url('../images/help.png')
+
+}

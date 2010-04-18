@@ -102,8 +102,14 @@ $tagHandling = "<div class='feed-importer-field'><label>Add tags as subjects</la
 $tagHandling .= "<div class='feed-importer-field'><label>Add tags as item tags</label>" . checkbox(array('name'=>'tags_as_tags'),  $feedimporter_feed->tags_as_tags)  . "</div>";
 $tagHandling .= "<div class='feed-importer-field'><label>Link back to tags</label>" . checkbox(array('name'=>'tags_linkback'),  $feedimporter_feed->tags_linkback)  . "</div>";
 
-
 $tagHandling .= "<div class='feed-importer-field'><label>Use a tag map</label>" . checkbox(array('name'=>'map_tags'),  $feedimporter_feed->map_tags)  . "</div>";
+$tagHandling .= "<p><a target='_blank' href='" . uri(array('feed_id'=>$feedimporter_feed->id, 'action'=>'browse'), 'feed_importer_tag_config_action') . "'>Power edit tags</a></p>
+		<p class='explanation'>Power edit settings will override these basics. Use this option
+		only if you know your metadata well, and are comfortable predicting options based on the tags coming from the feed";
+		
+	
+
+
 //TODO: build a tag mapping mechanism
 
 /*$tagHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
@@ -120,6 +126,9 @@ $tabs['Tag/Category Handling'] = $tagHandling;
 
 $authorshipHandling = "<div class='feed-importer-field'><label>Add author as creator</label>" . checkbox(array('name'=>'author_as_creator'),  $feedimporter_feed->author_as_creator)  . "</div>";
 $authorshipHandling .= "<div class='feed-importer-field'><label>Map authors to Omeka users</label>" . checkbox(array('name'=>'map_authors'),  $feedimporter_feed->map_authors)  . "</div>";
+
+
+
 //TODO: build mechanism for making author map
 /*
 $authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
