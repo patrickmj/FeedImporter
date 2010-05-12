@@ -3,6 +3,9 @@
  * 
  */
  
+ 
+
+ 
  class FeedImporter_FeedsController extends Omeka_Controller_Action
  {
  	
@@ -47,20 +50,30 @@
 			$debug->title = $feed->get_title();
 			$debug->description = $feed->get_description();
 			
+			//Set up the tag configurations for the first import
+			$import = new FeedImporter_Import;
+			$import->processFeedTags($feed);
+			
 			$record->feed_url = $feed_url;
 			$record->feed_title = $feed->get_title();
 			$record->feed_description = $feed->get_description();
-			
-        	$this->view->assign(array($varName=>$record));
+	
+	 		
+
  		}
-//create a new collection if needed 		 		
- 		if($_POST['new_collection']) {
-			$feed->set_feed_url($_POST['feed_url']);		 
-			// Run SimplePie.
-			$feed->init();
-			$feed->handle_content_type(); 			
- 			$_POST['collection_id'] = $this->_createCollectionFromFeed($feed);	 		
- 		}
+ 		$record->save();
+ 		// Create a new FakeCron_Task for the feed
+ 		$fc_task = new FakeCron_Task();
+ 		$fc_task->interval = 60 * 60; // just for testing/dev = 1 hour
+ 		$fc_task->name = "Cron for feed " . $record->feed_title;
+ 		$fc_task->plugin_class = "FeedImporter_FakeCronTask";
+ 		$fc_task->params = serialize(array($record->id));
+ 		$fc_task->save();
+ 		$record->task_id = $fc_task->id;
+		$_POST['task_id'] = $fc_task->id;
+		
+    	$this->view->assign(array($varName=>$record)); 		
+
         try {
             if ($record->saveForm($_POST)) {
                 $this->redirect->goto('browse');
@@ -74,14 +87,27 @@
  	
  	public function editAction()
  	{
- 		if($_POST['new_collection']) {
- 			$feed = new SimplePie();
-			$feed->set_feed_url($_POST['feed_url']);			
-			$feed->init();
-			$feed->handle_content_type(); 			
+ 		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
+		$feed = new SimplePie();
+		$record = $this->getTable()->find($this->_getParam('id'));
+		
+		$feed->set_feed_url($record->feed_url);			
+		$feed->init();
+		$feed->handle_content_type(); 
+		$import = new FeedImporter_Import;
+		$import->processFeedTags($feed, $this->_getParam('id'));		
+		
+ 		if($_POST['new_collection']) {			
  			$_POST['collection_id'] = $this->_createCollectionFromFeed($feed);	 		
  		} 		
  		
+	 	// Edit the FakeCron_Task for the feed if needed
+ 		if($_POST['update_frequency']) {
+			$fc_task = $this->getDB()->getTable('FakeCron_Task')->find($record->task_id);
+	 		$fc_task->interval = $_POST['update_frequency'];
+	 		$fc_task->save();
+ 		}
+
  		parent::editAction();
  	}
  	
@@ -95,9 +121,9 @@
  	
 	public function importAction() 
 	{
-		
-		$feed = $this->findById();
-		
+
+		$feed = $this->findById();	
+				
 		//make a new FI_Import
 		$newImport = new FeedImporter_Import();
 		$newImport->feed_id = $feed->id;

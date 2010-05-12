@@ -4,7 +4,8 @@
 class FeedImporter_FeedTable extends Omeka_Db_Table
 {
 	
-	//TODO: figure out how to redo this as a table method
+
+	
 	public function feedItemCount($feedId)
 	{
 		

@@ -30,6 +30,7 @@ class FeedImporter_Feed extends Omeka_Record
 	public $map_tags;
 	public $tags_map;
 	public $items_linkback;
+	public $task_id;
 
 //Many thanks to Will Riley for this method
 	public function feedItemCount($feedId = false)

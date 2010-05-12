@@ -124,7 +124,7 @@ head($head);
 		echo "<label>Element Set</label>" . select(array('onchange'=>'FI.showElSet(event)',  'class'=>'fi_elset_select'), $elSetPairs); 
 		foreach($elSetPairs as $id=>$elSet) {
 			$elementsMap = unserialize($tag->elements_map);	
-			echo  "<div class='feed-importer-element-set' id='feed-importer-element-set-$id'>" . select_element(array('name'=>"tc[$tag->id][elements_map][$elSet]", 'multiple'=>'true', 'size'=>'5'), $elementsMap[$elSet] , $elSet, array('element_set_name'=>$elSet)) . "</div>";
+			echo  "<div class='feed-importer-element-set feed-importer-element-set-$id'>" . select_element(array('name'=>"tc[$tag->id][elements_map][$elSet]", 'multiple'=>'true', 'size'=>'5'), $elementsMap[$elSet] , $elSet, array('element_set_name'=>$elSet)) . "</div>";
 		}		
 	?>
 	

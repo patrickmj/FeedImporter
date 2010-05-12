@@ -16,7 +16,7 @@ $tabs['Basics'] = $basics;
 $feedSettings = "<div class='feed-importer-field'><label>Import Start Date</label><input id='import-start-date' type='text' /></div>"; //jquery a date popup
 $feedSettings .= "<div class='feed-importer-field'><label>Import End Date</label><input id='import-end-date' type='text' /></div>"; //jquery a date popup
 
-$updateFreqVals = array('30'=>'Half hour', '60'=>'Hour', '1440'=>'Daily');
+$updateFreqVals = array('180'=>'Half hour', '360'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
 
 $feedSettings .= "<div class='feed-importer-field'><label>Update Frequency</label>" . select(array('name'=>'update_frequency'), $updateFreqVals, $feedimporter_feed->update_frequency ) . "</div>";
 /*
@@ -48,29 +48,12 @@ foreach($itemTypesArray as $id=>$name) {
 	release_object($itemType);
 }
 
-$json = "FeedImporter.ui.itemTypeElements = " . json_encode($itemTypeElementsObj) ;
+$json = "FI.itemTypeElements = " . json_encode($itemTypeElementsObj) ;
 
-$itemTypeHandling = "<script type='text/javascript'> 
-		var FeedImporter = {}; 
-		FeedImporter.ui = {};		
-		$json;		
-
-		
-		FeedImporter.ui.switchItemTypeElements = function(e) {
-		//dunno why I can't get jQuery techniques going on here'
-		var elSel = document.getElementById('content_element_id');
-		elSel.innerHTML = FeedImporter.ui.itemTypeElements[e.target.value];
-		//jQuery('#content_element_id').html(FeedImporter.ui.itemTypeElements[e.target.value]));
-		
-		
-		
-		
-						
-				
-				
-		}		
+$itemTypeHandling = "<script type='text/javascript'> 	
+		$json;			
 		 </script>";
-$itemTypeHandling .= "<div onchange='FeedImporter.ui.switchItemTypeElements(event)' id='item-type' class='feed-importer-field'><label>Item Type for imported items</label>" . select(array('name'=>'item_type_id'), $itemTypesArray, $feedimporter_feed->item_type_id) . "</div>";
+$itemTypeHandling .= "<div onchange='FI.switchItemTypeElements(event)' id='item-type' class='feed-importer-field'><label>Item Type for imported items</label>" . select(array('name'=>'item_type_id'), $itemTypesArray, $feedimporter_feed->item_type_id) . "</div>";
 $itemTypeHandling .= "<div id='content-element' class='feed-importer-field'><label>Element for item content</label>" . select(array('name'=>'content_element_id'), array(), $feedimporter_feed->content_element_id ) .  "<p class='explanation'>Select Item Type above to update options.</p></div>";
 
 $tabs['Item Type Handling'] = $itemTypeHandling;
@@ -102,12 +85,14 @@ $tagHandling = "<div class='feed-importer-field'><label>Add tags as subjects</la
 $tagHandling .= "<div class='feed-importer-field'><label>Add tags as item tags</label>" . checkbox(array('name'=>'tags_as_tags'),  $feedimporter_feed->tags_as_tags)  . "</div>";
 $tagHandling .= "<div class='feed-importer-field'><label>Link back to tags</label>" . checkbox(array('name'=>'tags_linkback'),  $feedimporter_feed->tags_linkback)  . "</div>";
 
-$tagHandling .= "<div class='feed-importer-field'><label>Use a tag map</label>" . checkbox(array('name'=>'map_tags'),  $feedimporter_feed->map_tags)  . "</div>";
-$tagHandling .= "<p><a target='_blank' href='" . uri(array('feed_id'=>$feedimporter_feed->id, 'action'=>'browse'), 'feed_importer_tag_config_action') . "'>Power edit tags</a></p>
-		<p class='explanation'>Power edit settings will override these basics. Use this option
+
+if($feedimporter_feed->id) {
+
+$tagHandling .= "<p><a target='_blank' href='" . uri(array('feed_id'=>$feedimporter_feed->id, 'action'=>'browse'), 'feed_importer_tag_config_action') . "'>Configure tags</a></p>
+		<p class='explanation'>You can configure individual tags to override these general options, and to customize Item Type and Collection handling based on individual tags. Use this option
 		only if you know your metadata well, and are comfortable predicting options based on the tags coming from the feed";
 		
-	
+}	
 
 
 //TODO: build a tag mapping mechanism

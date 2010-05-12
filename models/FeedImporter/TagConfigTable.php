@@ -4,12 +4,7 @@
 
 class FeedImporter_TagConfigTable extends Omeka_Db_Table
 {	
-	
-	public function findByOriginalName($orig_name)
-	{
-		
-		
-	}
+
 
 
 	public function applySearchFilters($select, $params)
@@ -28,6 +23,9 @@ class FeedImporter_TagConfigTable extends Omeka_Db_Table
 	
 	public function findByFeedId($feed_id, $asHash = false)
 	{
+		if(! $feed_id) {
+			return array();
+		}
 		$select = $this->getSelect()->where("feed_id = ?", $feed_id);
 		if($asHash) {
 			$tcConfigs = $this->fetchObjects($select);
@@ -40,12 +38,7 @@ class FeedImporter_TagConfigTable extends Omeka_Db_Table
 		return $this->fetchObjects($select);
 		
 	}
-	
-	public function findByFeedAndOriginalName($feed_id, $orig_name)
-	{
-		
-		
-	}
+
 	
 	
 	

@@ -31,7 +31,8 @@ function feed_importer_install()
 	//Add Feeds table
 	$sql = "CREATE TABLE IF NOT EXISTS `{$db->prefix}feed_importer_feeds` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `collection_id` int(10) unsigned NOT NULL,
+  `collection_id` int(10) unsigned NULL,
+  `task_id` int(10) unsigned NULL,		
   `feed_url` text COLLATE utf8_unicode_ci,
   `feed_title` text COLLATE utf8_unicode_ci,
   `feed_description` text COLLATE utf8_unicode_ci,  		
@@ -93,8 +94,9 @@ function feed_importer_install()
   `collection_id_priority` int(10) unsigned NULL,		  		
   `item_type_id` int(10) unsigned NULL,
   `item_type_id_priority` int(10) unsigned NULL,  
-  `feed_id` int(10) unsigned NOT NULL,
+  `feed_id` int(10) unsigned NULL,
   `created` date NOT NULL,
+   `skip` int(1) unsigned NULL,
   `count` int(10) unsigned NULL,
   `elements_map` mediumtext COLLATE utf8_unicode_ci NULL,
   `tags_map` mediumtext COLLATE utf8_unicode_ci NULL,
@@ -199,10 +201,10 @@ function feed_importer_admin_theme_header($request)
 {
 	
 	if($request->getModuleName() == 'feed-importer') {
-		switch($request->getControllerName() ) {
+		echo '<script type="text/javascript" src="' . WEB_PLUGIN . '/FeedImporter/views/common/js/feed-importer.js" ></script>';
+		switch($request->getControllerName() ) {			
 			case 'tag-configs':
-				echo '<link href="' . WEB_PLUGIN . '/FeedImporter/views/common/css/tag-configs.css" media="screen" rel="stylesheet" />';
-				echo '<script type="text/javascript" src="' . WEB_PLUGIN . '/FeedImporter/views/common/js/feed-importer.js" ></script>';
+				echo '<link href="' . WEB_PLUGIN . '/FeedImporter/views/common/css/tag-configs.css" media="screen" rel="stylesheet" />';				
 			break;
 			
 			case 'feeds':

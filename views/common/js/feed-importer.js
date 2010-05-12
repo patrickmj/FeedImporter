@@ -2,8 +2,7 @@ var FI = {
 
 	showElSet : function(e) {	
 		jQuery('.feed-importer-element-set', e.target.parentNode).hide();
-		jQuery('#feed-importer-element-set-' + e.target.value, e.target.parentNode).show();
-		
+		jQuery('.feed-importer-element-set-' + e.target.value, e.target.parentNode).show();
 	},
 
 	showHelpText : function(topic) {
@@ -32,7 +31,15 @@ var FI = {
 		itemType: 'Override the default collection for this tag. For example, if you know the feed tags all videos with "Video"',
 		tag: 'Map this tag to any number of Omeka item tags. For example, the original tag name "Paris" might map onto Omeka item tags "Paris" and "France". Or, it might map onto "Celebrities", depending on the nature of your site.',
 		elSet: 'Map this tag onto any number of Omeka Elements. Select the Element Set you want to choose from, then select	the Elements.'
+	},
+
+
+		
+	switchItemTypeElements : function(e) {		
+		var elSel = document.getElementById('content_element_id');
+		elSel.innerHTML = FI.itemTypeElements[e.target.value];
 	}
+
 
 };
 

@@ -11,9 +11,8 @@ class FeedImporter_Import extends Omeka_Record
 	public $status;
 	public $sp_error;
 	public $created;
-	private $fi_feed;
-
 	
+
 
 	const STATUS_IN_PROGRESS_IMPORT = 'Import In Progress';
     const STATUS_COMPLETED_IMPORT = 'Completed Import';
@@ -33,6 +32,7 @@ class FeedImporter_Import extends Omeka_Record
 			$items[] = $itemTable->find($importedItem->item_id);
 			release_object($importedItem);
 		}
+		
 		return $items;
 	}
 
@@ -72,6 +72,7 @@ class FeedImporter_Import extends Omeka_Record
 
 	public function doImport()
 	{
+
 		$db = get_db();   
  		$hasError = false;
  		require_once(PLUGIN_DIR . "/FeedImporter/libraries/SimplePie/simplepie.inc");
@@ -186,7 +187,7 @@ class FeedImporter_Import extends Omeka_Record
 			}
 
 		}		
-		
+		print_r($elementTextsArray);
 		return $elementTextsArray;		
  	}
 
@@ -218,12 +219,26 @@ class FeedImporter_Import extends Omeka_Record
 		return $elTextsArray;
 	}
 
+	/**
+	 * processFeedTags is used when editing a feed to gather up initial tag info
+	 */
+
+	public function processFeedTags($sp_feed, $feed_id)
+	{
+		$this->feed_id = $feed_id;
+		$this->fi_tags = get_db()->getTable('FeedImporter_TagConfig')->findByFeedId($feed_id, true);
+		$sp_items = $sp_feed->get_items();
+		foreach($sp_items as $sp_item) {
+			$this->processItemTags($sp_item);
+		}
+	}
+
  	public function processItemTags($sp_item)
  	{
  		$tags = $sp_item->get_categories();
  		foreach($tags as $tag) {
  			$tagName = trim($tag->get_label());
- 			if(array_key_exists($tagName, $this->fi_tags)) { 				
+ 			if($this->fi_tags && array_key_exists($tagName, $this->fi_tags)) { 				
  				$this->fi_tags[$tagName]->count++;
  				$this->fi_tags[$tagName]->save();
  			} else {
@@ -361,9 +376,6 @@ class FeedImporter_Import extends Omeka_Record
 		} catch (Exception $e) {
 			echo "insert fail";
 		}
-		
-
-
  	} 	
  	
  	private function _buildFeedItemItemTypeData($sp_item, $o_item)
@@ -394,19 +406,6 @@ class FeedImporter_Import extends Omeka_Record
 		return $elementTextsArray;	
 	}
 
-	
-
-
-	private function _mapTagLabel($tagLabel)
-	{
-		return $this->tagsMap[$tagLabel] ? $this->tagsMap[$tagLabel] : $tagLabel ;
-		
-	}
-	
-	private function _mapAuthorName($authorName)
-	{
-		return $this->authorsMap[$authorName] ? $this->authorsMap[$authorName] : $authorName ;
-	}
 
 	
 }
