@@ -6,7 +6,7 @@ $basics .= "<div class='feed-importer-field'><label>Feed Title</label>" . text(a
 $basics .= "<div class='feed-importer-field'><label>Feed Description</label>" . textarea(array('name'=>'feed_description', 'value'=>$feedimporter_feed->feed_description, 'rows'=>'5', 'cols'=>'50'), $feedimporter_feed->feed_description) . "</div>";
 $basics .= "<div class='feed-importer-field'><label>Collection for items in feed</label>" . select_collection(array('name'=>'collection_id', 'value'=>$feedimporter_feed->collection_id), $feedimporter_feed->collection_id);
 $basics .= "<p>Or create new collection from feed info ". checkbox(array('name'=>'new_collection')) ;
-$basics .= ajax_create_dialog(array('type'=>'Collection', 'target'=>'collection_id'));
+$basics .= ajax_create_dialog(array('type'=>'Collection', 'target'=>'#collection_id'));
 $basics .= "</div>";
 
 
@@ -16,7 +16,7 @@ $tabs['Basics'] = $basics;
 $feedSettings = "<div class='feed-importer-field'><label>Import Start Date</label><input id='import-start-date' type='text' /></div>"; //jquery a date popup
 $feedSettings .= "<div class='feed-importer-field'><label>Import End Date</label><input id='import-end-date' type='text' /></div>"; //jquery a date popup
 
-$updateFreqVals = array('180'=>'Half hour', '360'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
+$updateFreqVals = array('0'=>"Manual Updates Only", '180'=>'Half hour', '360'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
 
 $feedSettings .= "<div class='feed-importer-field'><label>Update Frequency</label>" . select(array('name'=>'update_frequency'), $updateFreqVals, $feedimporter_feed->update_frequency ) . "</div>";
 /*

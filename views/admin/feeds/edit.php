@@ -37,6 +37,10 @@ $$('.tabs').each(function(tab_group){
     <?php endif; ?>
 <?php endforeach; ?>	
 <?php echo submit(array('name'=>'submit', 'id'=>'save-changes', 'class'=>'submit submit-medium'), 'Save Changes'); ?>	
+
+<p id="delete_item_link">
+	<a class="delete" href="<?php echo uri('feeds/delete/') . $feedimporter_feed->id ?>">Delete This Feed</a>       
+</p>
 </form>
 
 

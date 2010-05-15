@@ -121,7 +121,14 @@ function feed_importer_uninstall()
 	$db->exec($sql);
 	
 	$sql = "DROP TABLE IF EXISTS `{$db->prefix}feed_importer_tag_configs`";
-	$db->exec($sql);			
+	$db->exec($sql);
+	
+	//Remove any FakeCron tasks associated with FeedImporter
+	$fakeCronTasks = $db->getTable('FakeCron_Task')->findBy(array('plugin_class'=>"FeedImporter_FakeCronTask") );
+
+	foreach($fakeCronTasks as $fakeCronTask){
+		$fakeCronTask->delete();
+	}
 }
 
 

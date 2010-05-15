@@ -18,6 +18,7 @@ class FeedImporter_TagConfigTable extends Omeka_Db_Table
 	public function filterByFeedId($select, $feed_id)
 	{
 		$select->where( "feed_id = $feed_id" );
+		return $select;
 		
 	}
 	

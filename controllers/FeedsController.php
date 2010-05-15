@@ -32,8 +32,8 @@
         $class = $this->_modelClass;
         
         $record = new FeedImporter_Feed();
- 		//do some pre-processing 
- 		
+		//Need an id to work with the tags, so save it now, even though it might be sloppy/confusing
+ 		$record->save();
  		
  		if($_GET['feed_url']) {
  			$feed_url = $_GET['feed_url'];
@@ -52,7 +52,7 @@
 			
 			//Set up the tag configurations for the first import
 			$import = new FeedImporter_Import;
-			$import->processFeedTags($feed);
+			$import->processFeedTags($feed, $record->id);
 			
 			$record->feed_url = $feed_url;
 			$record->feed_title = $feed->get_title();
@@ -62,9 +62,10 @@
 
  		}
  		$record->save();
+ 		
  		// Create a new FakeCron_Task for the feed
  		$fc_task = new FakeCron_Task();
- 		$fc_task->interval = 60 * 60; // just for testing/dev = 1 hour
+ 		$fc_task->interval = 0;
  		$fc_task->name = "Cron for feed " . $record->feed_title;
  		$fc_task->plugin_class = "FeedImporter_FakeCronTask";
  		$fc_task->params = serialize(array($record->id));
@@ -109,6 +110,23 @@
  		}
 
  		parent::editAction();
+ 	}
+ 	
+ 	public function deleteAction()
+ 	{
+ 		$feed_id = $this->_getParam('id');
+		$record = $this->getTable()->find($feed_id);
+ 		//delete the task
+		$task = $this->getDb()->getTable('FakeCron_Task')->find($record->task_id);
+		$task->delete();				
+
+ 		//delete the tags configs
+ 		$tagConfigs = $this->getDb()->getTable('FeedImporter_TagConfig')->findBy(array('feed_id'=>$feed_id));
+ 		foreach($tagConfigs as $tagConfig) {
+ 			$tagConfig->delete();
+ 		}
+ 		
+ 		parent::deleteAction();
  	}
  	
  	public function historyAction() 

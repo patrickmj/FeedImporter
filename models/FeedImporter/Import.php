@@ -39,7 +39,7 @@ class FeedImporter_Import extends Omeka_Record
 	public function undoImport()
 	{
 	    // first save the import object in the database
-        //$this->status = self::STATUS_IN_PROGRESS_UNDO_IMPORT;
+        //$this->status = self::self::STATUS_IN_PROGRESS_UNDO_IMPORT;
 	    $this->status = "wtf";
 	    $this->save();
 		$itemTable = $this->getDb()->getTable('Item');
@@ -90,7 +90,7 @@ class FeedImporter_Import extends Omeka_Record
 		$sp_feed->init();
 		if ($sp_feed->error()) {
 			$hasError = true;
-			$this->status = STATUS_FEED_ERRORS;
+			$this->status = self::STATUS_FEED_ERRORS;
 			$this->sp_error = $sp_feed->error();
 			$this->save();
 			return false;
@@ -109,7 +109,8 @@ class FeedImporter_Import extends Omeka_Record
 					$newImportedItem->feed_id = $this->fi_feed->id;
 					$newImportedItem->import_id = $this->id;
 					$newImportedItem->sp_id = $sp_item->get_id(true); //md5 hashes the post
-					$newImportedItem->permalink = $sp_item->get_permalink();					
+					//I hate trailing slashes, so removing them when setting until I'm convinced that's wrong
+					$newImportedItem->setPermalink($sp_item->get_permalink() );					
 					$newImportedItem->save();				
 					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
 					if($this->fi_feed->import_media) {				
@@ -119,7 +120,7 @@ class FeedImporter_Import extends Omeka_Record
 			}				
 		}
 
- 		$this->status = STATUS_COMPLETED_IMPORT ;
+ 		$this->status = self::STATUS_COMPLETED_IMPORT ;
  		$this->save();
  		return true; 	
 	}
@@ -133,13 +134,10 @@ class FeedImporter_Import extends Omeka_Record
  		//TODO: make Omeka Document the default item type
  		//$metadataArray['item_type_id'] = 1; // just temporary until I build the UI to change this
  		$metadataArray['item_type_id'] = $this->getItemTypeId($sp_item);
+ 		
+ 		//work with the tag settings
  		if($this->fi_feed->tags_as_tags) {
- 			$tags = $sp_item->get_categories();
- 			$tagsString = "";
- 			foreach($tags as $tag) {
- 				$tagsString .= $tag->get_label() . ",";
- 			}
- 			$metadataArray['tags'] = $tagsString;
+ 			$metadataArray['tags'] = $this->getOmekaTags($sp_item);
  		}	
  		return $metadataArray;
  	}
@@ -164,8 +162,8 @@ class FeedImporter_Import extends Omeka_Record
 			$desc = substr($sp_item->get_description() , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
 		}
-		//build up tag-based metadata
-		$elementTextsArray = array_merge($elementTextsArray, $this->getElementTextsByTags($sp_item));
+		//build up tag-based metadata		
+		$elementTextsArray = $this->addElementTextsByTags($sp_item, $elementTextsArray);
 		
 		//build up source and relation metadata
 		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $sp_item->get_title() . "</a>";
@@ -185,23 +183,21 @@ class FeedImporter_Import extends Omeka_Record
 				}				
 				$elementTextsArray['Dublin Core']['Creator'][] = array('text'=>$authorName, 'html'=>false);								
 			}
-
-		}		
-		print_r($elementTextsArray);
+		}				
 		return $elementTextsArray;		
  	}
 
-	public function getElementTextsByTags($sp_item)
+	public function addElementTextsByTags($sp_item, $elementTextsArray)
 	{
 		$linkBack = $this->fi_feed->tags_linkback;
 		$tagNames = $this->_getItemTagNames($sp_item);
-		$elTextsArray = array();
+		
 		foreach($tagNames as $tagName){
 			if($this->fi_tags[$tagName]->skip) {
 				continue;
 			}
 			if($this->fi_feed->tags_as_subjects) {
-				$elTextsArray['Dublin Core']['Subject'][] = $this->fi_tags[$tagName]->getElementText($linkBack);
+				$elementTextsArray['Dublin Core']['Subject'][] = $this->fi_tags[$tagName]->getElementText($linkBack);
 			}
 			if($this->fi_tags[$tagName]->elements_map) {
 				$elMap = unserialize($this->fi_tags[$tagName]->elements_map);
@@ -213,10 +209,10 @@ class FeedImporter_Import extends Omeka_Record
 				if($this->fi_feed->tags_as_subjects) {
 					unset($elMap['Dublin Core']['Subject']);
 				}
-				$elTextsArray = array_merge($elTextsArray, $elMap);
+				$elementTextsArray = array_merge($elementTextsArray, $elMap);
 			}			
 		}
-		return $elTextsArray;
+		return $elementTextsArray;
 	}
 
 	/**
@@ -256,13 +252,14 @@ class FeedImporter_Import extends Omeka_Record
  	
  	public function getOmekaTags($sp_item)
  	{
- 		$sp_tagNames = $this->_getItemTagNames();
+ 		$sp_tagNames = $this->_getItemTagNames($sp_item);
+
  		$o_tagsArray = array();
  		
- 		foreach($this->sp_tagNames as $tagName) {
- 			if($this->fi_feed->tags_as_tags) {
- 				$o_tagsArray[] = $this->fi_tags[$tagName]->getName();
- 			}
+ 		foreach($sp_tagNames as $tagName) {
+
+			$o_tagsArray[] = $this->fi_tags[$tagName]->getName();
+
  			
  			if($this->fi_tags[$tagName]->tags_map) {
  				$tagsMap = unserialize($this->fi_tags[$tagName]->tags_map);

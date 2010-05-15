@@ -27,6 +27,4 @@ function myCB(data) {
 
 </script>
 
-<?php echo ajax_create_dialog(array('type'=>'Collection', 'target'=>'woot'), "myCB"); ?>
-
 <?php foot(); ?>

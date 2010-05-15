@@ -14,6 +14,12 @@
     public $item_id;
     public $permalink;
     public $sp_id;
+
+
+	public function setPermalink($permalink)
+	{
+		$this->permalink = rtrim($permalink, '/');
+	}
 	
 	public function getItemId()
 	{
