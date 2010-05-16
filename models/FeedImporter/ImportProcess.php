@@ -11,11 +11,7 @@
     public function run($args)
     {
         $db = get_db();        
-        
-        // Set the memory limit.
-        //$memoryLimit = get_option('feed_importer_memory_limit');
-        //ini_set('memory_limit', $memoryLimit);
-        
+
         // get the import object
         $importId = (int) $args['import_id'];
         $import = $db->getTable('FeedImporter_Import')->find($importId);

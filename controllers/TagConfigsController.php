@@ -36,7 +36,7 @@ class FeedImporter_TagConfigsController extends Omeka_Controller_Action
 		$feed_id = $this->_getParam('feed_id');
 		
 		$fi_tags = $table->findBy(array('feed_id'=>$feed_id), 10, $page);
-		$count = $table->fetchOne($table->getSelectForCount() ) ;
+		$count = $table->fetchOne($table->getSelectForCount()->where('feed_id = ?', $feed_id) ) ;
         /** 
          * Now process the pagination
          * 
@@ -68,7 +68,7 @@ class FeedImporter_TagConfigsController extends Omeka_Controller_Action
 			release_object($o_tag);
 		}		
 		
-		$priorityArray = range(1, 3*$count + 1);
+		$priorityArray = range(1, 10);
 		$this->view->assign(array('tags'=>$fi_tags, 
 									'debug'=>$pagination,
 									'elSetPairs'=>$elSetPairs,

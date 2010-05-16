@@ -139,7 +139,9 @@
  	
 	public function importAction() 
 	{
-
+        if (!$this->_hasValidPHPCliPath()) {
+            $this->redirect->goto('error');    
+        }
 		$feed = $this->findById();	
 				
 		//make a new FI_Import
