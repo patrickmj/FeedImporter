@@ -12152,6 +12152,7 @@ class SimplePie_IRI
 		else
 		{
 			//PMJ -- remove replacement because it borks any feed with GET params, like flickr
+			// see http://tech.groups.yahoo.com/group/simplepie-support/message/4803
 			//$this->query = $this->replace_invalid_with_pct_encoding($query, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$\'()*+,;:@/?');
 			$this->query = $query;
 		}

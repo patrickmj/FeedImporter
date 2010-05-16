@@ -39,8 +39,8 @@ class FeedImporter_Import extends Omeka_Record
 	public function undoImport()
 	{
 	    // first save the import object in the database
-        //$this->status = self::self::STATUS_IN_PROGRESS_UNDO_IMPORT;
-	    $this->status = "wtf";
+        
+	    $this->status = self::STATUS_IN_PROGRESS_UNDO_IMPORT;
 	    $this->save();
 		$itemTable = $this->getDb()->getTable('Item');
 		$this->status = "Got item table";
@@ -63,8 +63,8 @@ class FeedImporter_Import extends Omeka_Record
             $importedItems = $importedItemTable->findByImportId($this->id);        
         } 
         
-        $this->status = self::STATUS_COMPLETED_UNDO_IMPORT;
-        $this->save();
+        
+        $this->delete();
 		return true;
 	}
 
@@ -167,10 +167,12 @@ class FeedImporter_Import extends Omeka_Record
 		//build up tag-based metadata		
 		$elementTextsArray = $this->addElementTextsByTags($sp_item, $elementTextsArray);
 		
-		//build up source and relation metadata
+		//build up standard bits of metadata
 		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $title . "</a>";
 		$elementTextsArray['Dublin Core']['Relation'][] = array('text'=>$related, 'html'=>true);
 		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
+		$elementTextsArray['Dublin Core']['Identifier'][] = array('text'=>$sp_item->get_id(), 'html'=>false);
+		
 		
 		//build up creator metadata
 		//TODO: this should also be mapable to any element

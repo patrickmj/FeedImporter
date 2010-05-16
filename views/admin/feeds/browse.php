@@ -53,14 +53,10 @@ print_r($debug);
 	foreach($feedimporter_feeds as $feed):
 	
 	$collection = get_collection_by_id($feed->collection_id);
-	//TODO: dig up how many items imported
 	$importTable = get_db()->getTable('FeedImporter_Import');
 	$lastImport = $importTable->getMostRecentImportForFeedId($feed->id);
 	
-	
-	//$importCount = $feedTable->importCount();
-	//$importCount = $lastImport->;
-	//TODO: dig up status -- figure out Process and ProcessDispatcher
+
 ?>		
 	<tr>
 		<td><?php echo $feed->id ?></td>
