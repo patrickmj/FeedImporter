@@ -5,8 +5,6 @@
 $head = array('body_class' => 'feed-importer primary', 
               'title'      => 'Feed Importer -- Imported Items');
 head($head);
-//print_r($import);
-//print_r($items);
 
 ?>
 

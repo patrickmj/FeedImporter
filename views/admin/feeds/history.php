@@ -42,7 +42,7 @@ $itemsCount = $importedItemTable->countItemsFromImportId($import->id);
 		</td>
 		<td><?php echo $itemsCount  ?></td>
 		<td><a class="fi_undo-import" href="<?php echo uri('feeds/imports/undoImport/' . $import->id); ?>">Undo?</a></td>
-		<td><a href="<?php echo uri('feeds/imports/show/' . $import->id) ; ?>">Browse Items Imported</a></td>
+		<td><a href="<?php echo uri('feeds/imports/items/' . $import->id) ; ?>">Browse Items Imported</a></td>
 	</tr>
 <?php endforeach; ?>	
 	

@@ -85,9 +85,11 @@ class FeedImporter_Import extends Omeka_Record
  		}
  		 		
  		$sp_feed = new SimplePie();
-		$sp_feed->set_feed_url($this->fi_feed->feed_url);		 
+		$sp_feed->set_feed_url($this->fi_feed->feed_url );
+		$sp_feed->handle_content_type();		 
 		// Run SimplePie.
 		$sp_feed->init();
+		
 		if ($sp_feed->error()) {
 			$hasError = true;
 			$this->status = self::STATUS_FEED_ERRORS;
@@ -149,7 +151,7 @@ class FeedImporter_Import extends Omeka_Record
  		//super-advanced optionn will stuff the data in as RDFa someday
  		
  		$elementTextsArray = array();
-		$title = $sp_item->get_title();
+		$title = htmlspecialchars_decode($sp_item->get_title() );
 		$permalink = $sp_item->get_permalink();
 		if($this->fi_feed->items_linkback) {
 			$titleHTML = "<a href='$permalink'>$title</a>";
@@ -159,14 +161,14 @@ class FeedImporter_Import extends Omeka_Record
 		}
 		 
 		if($this->fi_feed->content_as_description) {			
-			$desc = substr($sp_item->get_description() , 0 , $this->fi_feed->trim_length);
+			$desc = substr(htmlspecialchars_decode($sp_item->get_description() ) , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
 		}
 		//build up tag-based metadata		
 		$elementTextsArray = $this->addElementTextsByTags($sp_item, $elementTextsArray);
 		
 		//build up source and relation metadata
-		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $sp_item->get_title() . "</a>";
+		$related = "<a href='" . $sp_item->get_permalink() .  "' target='_blank'>"  . $title . "</a>";
 		$elementTextsArray['Dublin Core']['Relation'][] = array('text'=>$related, 'html'=>true);
 		$elementTextsArray['Dublin Core']['Source'][] = array('text'=>$related, 'html'=>true);
 		
