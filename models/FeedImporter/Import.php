@@ -245,6 +245,7 @@ class FeedImporter_Import extends Omeka_Record
  				$newTC = new FeedImporter_TagConfig; 				
  				$newTC->scheme = $tag->get_scheme();
  				$newTC->original_name = $tagName;
+ 				$newTC->count = 1;
  				$newTC->feed_id = $this->feed_id;
  				$newTC->created = date('Y-m-d G:i:s');
  				$this->fi_tags[$tagName] = $newTC;

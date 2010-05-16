@@ -11,6 +11,7 @@ $importedItemTable = get_db()->getTable('FeedImporter_ImportedItem');
 ?>
 
 <h1>Import History for <?php echo $feed->feed_title?></h1>
+<p><a href="<?php echo uri('feeds/show/' . $feed->id); ?>">Feed View</a></p>
 <?php echo flash(); ?>
 <div id="primary">
 

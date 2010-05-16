@@ -16,6 +16,7 @@ head($head);
 <p>Started: <?php echo $feedimporter_import->created; ?></p>
 <p>Status: <?php echo $feedimporter_import->status; ?></p>
 <p>Reload to check status</p>
+<p><a href="<?php echo uri('feeds/show/' . $feedimporter_import->feed_id); ?>">Feed View</a></p>
 </div>
 
 <script type="text/javascript">

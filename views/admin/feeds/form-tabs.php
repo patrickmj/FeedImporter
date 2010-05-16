@@ -16,7 +16,7 @@ $tabs['Basics'] = $basics;
 $feedSettings = "<div class='feed-importer-field'><label>Import Start Date</label><input id='import-start-date' type='text' /></div>"; //jquery a date popup
 $feedSettings .= "<div class='feed-importer-field'><label>Import End Date</label><input id='import-end-date' type='text' /></div>"; //jquery a date popup
 
-$updateFreqVals = array('0'=>"Manual Updates Only", '180'=>'Half hour', '360'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
+$updateFreqVals = array('0'=>"Manual Updates Only", '1800'=>'Half hour', '3600'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
 
 $feedSettings .= "<div class='feed-importer-field'><label>Update Frequency</label>" . select(array('name'=>'update_frequency'), $updateFreqVals, $feedimporter_feed->update_frequency ) . "</div>";
 /*

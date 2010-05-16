@@ -29,7 +29,8 @@ class FeedImporter_ImportsController extends Omeka_Controller_Action
         ProcessDispatcher::startProcess('FeedImporter_UndoImportProcess', $user, $args);
 		
        // $this->flashSuccess("Successfully started to undo the import. Reload this page for status updates.");
-        $this->redirect->gotoUrl('feeds/imports/show/' . $fi_import->id );
+       $this->redirect->gotoUrl('feeds/show/' . $fi_import->feed_id);
+        //$this->redirect->gotoUrl('feeds/imports/show/' . $fi_import->id );
     }
     
     public function itemsAction()

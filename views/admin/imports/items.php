@@ -11,7 +11,7 @@ head($head);
 
 <h1>Imported Items from Feed: <?php echo $feed->feed_title; ?></h1>
 <p>Import date: <?php echo $import->created ?></p>
-
+<p><a href="<?php echo uri('feeds/imports/undoImport/' . $import->id)  ?>">Undo this import</a></p>
 <div id="primary">
 
 
