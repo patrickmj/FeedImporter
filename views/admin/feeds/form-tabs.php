@@ -13,18 +13,13 @@ $basics .= "</div>";
 $tabs['Basics'] = $basics;
 
 //feed settings sets up start and end dates for importing from feed, and frequency with which to check the feed
-$feedSettings = "<div class='feed-importer-field'><label>Import Start Date</label><input id='import-start-date' type='text' /></div>"; //jquery a date popup
-$feedSettings .= "<div class='feed-importer-field'><label>Import End Date</label><input id='import-end-date' type='text' /></div>"; //jquery a date popup
+$feedSettings = "<div class='feed-importer-field'><label>Import Start Date</label><input id='import-start-date' class='date' type='text' /></div>"; //jquery a date popup
+$feedSettings .= "<div class='feed-importer-field'><label>Import End Date</label><input id='import-end-date' class='date'  type='text' /></div>"; //jquery a date popup
 
 $updateFreqVals = array('0'=>"Manual Updates Only", '1800'=>'Half hour', '3600'=>'Hour', '86400'=>'Daily', '604800'=>'Weekly');
 
 $feedSettings .= "<div class='feed-importer-field'><label>Update Frequency</label>" . select(array('name'=>'update_frequency'), $updateFreqVals, $feedimporter_feed->update_frequency ) . "</div>";
-/*
-$feedSettings .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$feedSettings .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$feedSettings .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$feedSettings .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-*/
+
 $tabs['Feed Settings'] = $feedSettings;
 
 
@@ -58,10 +53,7 @@ $itemTypeHandling .= "<div id='content-element' class='feed-importer-field'><lab
 
 $tabs['Item Type Handling'] = $itemTypeHandling;
 
-/*
-$itemTypeHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$itemTypeHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>"; 
-*/
+
 
 //content handling sets up whether to bring in the entire content, item type to use, what to do with media, how to handle linking and permalinks
 // also, whether to use trimmed content as dct:description
@@ -71,11 +63,7 @@ $contentHandling .= "<div class='feed-importer-field'><label>Import Media</label
 $contentHandling .= "<div class='feed-importer-field'><label>Link Back</label>" . checkbox(array('name'=>'items_linkback'),  $feedimporter_feed->items_linkback). "</div>";
 $contentHandling .= "<div class='feed-importer-field'><label>Use Content as Description</label>" . checkbox(array('name'=>'content_as_description'),  $feedimporter_feed->content_as_description) . "</div>";
 $contentHandling .= "<div class='feed-importer-field'><label>Trim Content to length</label>" . select(array('name'=>'trim_length'), array(0=>'Full', '100'=>100, '200'=>200, '300'=>300),  $feedimporter_feed->trim_length) . "</div>";
-/*
-$contentHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$contentHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$contentHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-*/
+
 $tabs['Content Handling'] = $contentHandling;
 
 //tag/category handling sets up what to do with subject elements and how to map them
@@ -95,14 +83,6 @@ $tagHandling .= "<p><a target='_blank' href='" . uri(array('feed_id'=>$feedimpor
 }	
 
 
-//TODO: build a tag mapping mechanism
-
-/*$tagHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$tagHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$tagHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$tagHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-*/
-
 
 $tabs['Tag/Category Handling'] = $tagHandling;
 
@@ -115,25 +95,12 @@ $authorshipHandling .= "<div class='feed-importer-field'><label>Map authors to O
 
 
 //TODO: build mechanism for making author map
-/*
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-$authorshipHandling .= "<div class='feed-importer-field'><label></label>" . . "</div>";
-*/
-$tabs['Authorship Handling'] = $authorshipHandling;
 
-$advancedOptions = "<div><p>Advanced options override any of the usual options set elsewhere. Use this tab only if you really know what you're doing with metadata both from RSS/ATOM feeds and within the Element Sets you have withing your Omeka installation.</p></div> "; 
-
-$advancedOptions .=  "<div><p>Maybe this only needs to show up if more than DC Element Set is present?</p></div>";
-
-$tabs['Advanced Metadata Handling'] = $advancedOptions;
 
 
 ?>
+
+
 <ul id="section-nav" class="navigation tabs">
     <?php foreach ($tabs as $tabName => $tabContent): ?>
         <?php if (!empty($tabContent)): // Don't display tabs with no content. '?>
@@ -141,3 +108,9 @@ $tabs['Advanced Metadata Handling'] = $advancedOptions;
         <?php endif; ?>
     <?php endforeach; ?>
 </ul>
+
+
+<script type="text/javascript">
+jQuery(document).ready(function() { jQuery(".date").datepicker();  });
+
+</script>

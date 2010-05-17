@@ -161,7 +161,7 @@ class FeedImporter_Import extends Omeka_Record
 		}
 		 
 		if($this->fi_feed->content_as_description) {			
-			$desc = substr(htmlspecialchars_decode($sp_item->get_description() ) , 0 , $this->fi_feed->trim_length);
+			$desc = substr($sp_item->get_description()  , 0 , $this->fi_feed->trim_length);
 			$elementTextsArray['Dublin Core']['Description'][] = array('text'=>$desc, 'html'=>false); 
 		}
 		//build up tag-based metadata		
