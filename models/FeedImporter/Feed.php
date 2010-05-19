@@ -31,6 +31,9 @@ class FeedImporter_Feed extends Omeka_Record
 	public $tags_map;
 	public $items_linkback;
 	public $task_id;
+	public $collect_by;
+	public $auto_create_collection_by_tag;
+	public $auto_create_collection_by_author;
 
 //Many thanks to Will Riley for this method
 	public function feedItemCount($feedId = false)

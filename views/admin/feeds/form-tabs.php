@@ -4,10 +4,7 @@ $db = get_db();
 $basics =  "<div class='feed-importer-field'><label>Feed URL</label>" . text(array('name'=>'feed_url', 'value'=>$feedimporter_feed->feed_url), $feedimporter_feed->feed_url) . "</div>";
 $basics .= "<div class='feed-importer-field'><label>Feed Title</label>" . text(array('name'=>'feed_title', 'value'=>$feedimporter_feed->feed_title), $feedimporter_feed->feed_title) . "</div>"; 
 $basics .= "<div class='feed-importer-field'><label>Feed Description</label>" . textarea(array('name'=>'feed_description', 'value'=>$feedimporter_feed->feed_description, 'rows'=>'5', 'cols'=>'50'), $feedimporter_feed->feed_description) . "</div>";
-$basics .= "<div class='feed-importer-field'><label>Collection for items in feed</label>" . select_collection(array('name'=>'collection_id', 'value'=>$feedimporter_feed->collection_id), $feedimporter_feed->collection_id);
-$basics .= "<p>Or create new collection from feed info ". checkbox(array('name'=>'new_collection')) ;
-$basics .= ajax_create_dialog(array('type'=>'Collection', 'target'=>'#collection_id'));
-$basics .= "</div>";
+//$basics .= "</div>";
 
 
 $tabs['Basics'] = $basics;
@@ -21,6 +18,12 @@ $updateFreqVals = array('0'=>"Manual Updates Only", '1800'=>'Half hour', '3600'=
 $feedSettings .= "<div class='feed-importer-field'><label>Update Frequency</label>" . select(array('name'=>'update_frequency'), $updateFreqVals, $feedimporter_feed->update_frequency ) . "</div>";
 
 $tabs['Feed Settings'] = $feedSettings;
+
+$collectionSettings = "<div class='feed-importer-field'><label>Collect by</label>" . select(array('name'=>'collect_by'), array('feed'=>'Feed', 'tag'=>'Tags', 'author'=>'Authors'), $feedimporter_feed->collect_by ) . "</div>";
+$collectionSettings .= "<div class='feed-importer-field'><label>Collection for items in feed</label>" . select_collection(array('name'=>'collection_id', 'value'=>$feedimporter_feed->collection_id), $feedimporter_feed->collection_id);
+$collectionSettings .= "<p>Or create new collection from feed info ". checkbox(array('name'=>'new_collection')) ;
+$collectionSettings .= ajax_create_dialog(array('type'=>'Collection', 'target'=>'#collection_id'));
+$tabs['Collection Handling'] = $collectionSettings;
 
 
 //itemTypeHandling tells what Item Type to use for imported items, and what Element to use if content is imported

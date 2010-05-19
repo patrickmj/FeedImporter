@@ -5,14 +5,11 @@
 class FeedImporter_TagConfigTable extends Omeka_Db_Table
 {	
 
-
-
 	public function applySearchFilters($select, $params)
 	{
 		if(isset($params['feed_id'])) {
 			$this->filterByFeedId($select, $params['feed_id']);
-		}
-		
+		}		
 	}
 
 	public function filterByFeedId($select, $feed_id)
@@ -21,7 +18,7 @@ class FeedImporter_TagConfigTable extends Omeka_Db_Table
 		return $select;
 		
 	}
-	
+	//TODO: do I still need this?
 	public function findByFeedId($feed_id, $asHash = false)
 	{
 		if(! $feed_id) {
@@ -39,12 +36,6 @@ class FeedImporter_TagConfigTable extends Omeka_Db_Table
 		return $this->fetchObjects($select);
 		
 	}
-
-	
-	
-	
-	
-	
 }
 
 ?>

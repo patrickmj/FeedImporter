@@ -14,12 +14,6 @@
     public $item_id;
     public $permalink;
     public $sp_id;
-
-
-	public function setPermalink($permalink)
-	{
-		$this->permalink = rtrim($permalink, '/');
-	}
 	
 	public function getItemId()
 	{
@@ -30,9 +24,7 @@
 	{
 	    return $this->import_id;
 	}
-	
 
-	
 	public function findByImportId($import_id)
 	{
 		

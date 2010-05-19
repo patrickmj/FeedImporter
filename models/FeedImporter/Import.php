@@ -103,16 +103,16 @@ class FeedImporter_Import extends Omeka_Record
 			foreach ($sp_feed->get_items() as $sp_item) {	
 				if( $this->_needsImport($sp_item)) {
 					$this->processItemTags($sp_item);
-					$metadataArray = $this->_buildFeedItemMetadata($sp_item);				
-					$elementTextsArray = $this->_buildFeedItemElementTexts($sp_item);				 					
+					$metadataArray = $this->buildFeedItemMetadata($sp_item);				
+					$elementTextsArray = $this->buildFeedItemElementTexts($sp_item);				 					
 					$newOmekaItem = insert_item($metadataArray, $elementTextsArray);
 					$newImportedItem = new FeedImporter_ImportedItem();
 					$newImportedItem->item_id = $newOmekaItem->id;
 					$newImportedItem->feed_id = $this->fi_feed->id;
 					$newImportedItem->import_id = $this->id;
-					$newImportedItem->sp_id = $sp_item->get_id(true); //md5 hashes the post
+					$newImportedItem->sp_id = $sp_item->get_id(); 
 					//I hate trailing slashes, so removing them when setting until I'm convinced that's wrong
-					$newImportedItem->setPermalink($sp_item->get_permalink() );					
+					$newImportedItem->setPermalink(rtrim($sp_item->get_permalink() , '/' ) );					
 					$newImportedItem->save();				
 					$this->_buildFeedItemItemTypeData($sp_item, $newOmekaItem);
 					if($this->fi_feed->import_media) {				
@@ -128,7 +128,7 @@ class FeedImporter_Import extends Omeka_Record
 	}
 
  	
- 	public function _buildFeedItemMetadata($sp_item) 
+ 	public function buildFeedItemMetadata($sp_item) 
  	{
  		//check settings against FeedImporterFeed settings for what to do with everything
  		$metadataArray = array();
@@ -143,7 +143,7 @@ class FeedImporter_Import extends Omeka_Record
  		}	
  		return $metadataArray;
  	}
- 	public function _buildFeedItemElementTexts($sp_item)
+ 	public function buildFeedItemElementTexts($sp_item)
  	{
  		//check again FeedImporterFeed settings for how to handle elements
  		//first pass at this plugin does basic, predictable stuff, all toward Dublin Core
@@ -219,9 +219,7 @@ class FeedImporter_Import extends Omeka_Record
 		return $elementTextsArray;
 	}
 
-	/**
-	 * processFeedTags is used when editing a feed to gather up initial tag info
-	 */
+//TODO: is this used anywhere?
 
 	public function processFeedTags($sp_feed, $feed_id)
 	{
@@ -276,9 +274,8 @@ class FeedImporter_Import extends Omeka_Record
  	
  	public function getCollectionId($sp_item)
  	{
- 		$collectionId = $this->fi_feed->collection_id;
- 		$tagNames = $this->getItemTagNames($sp_item);
- 		$tempCollectionId = -1;
+ 		
+ 		$tagNames = $this->getItemTagNames($sp_item); 		
  		$currPriority = -1;
  		foreach($tagNames as $tagName) {
  			if(array_key_exists($tagName, $this->fi_tags)   
@@ -287,20 +284,19 @@ class FeedImporter_Import extends Omeka_Record
  			
  				) {
  				$priority = $this->fi_tags[$tagName]->collection_id_priority;
- 				$tempCollectionId = $this->fi_tags[$tagName]->collection_id;
+ 				$collectionId = $this->fi_tags[$tagName]->collection_id;
  			}
  		}
- 		if($tempCollectionId != -1 ) {
- 			$collectionId = $tempCollectionId;
+ 		if(! $collectionId ) {
+ 			$collectionId = $this->fi_feed->collection_id;
  		}
  		return $collectionId;
  	}
  	
  	public function getItemTypeId($sp_item)
  	{
- 		$itemTypeId = $this->fi_feed->item_type_id;
- 		$tagNames = $this->getItemTagNames($sp_item);
- 		$tempItemTypeId = -1;
+ 		
+ 		$tagNames = $this->getItemTagNames($sp_item); 		
  		$currPriority = -1;
  		foreach($tagNames as $tagName) {
  			if(array_key_exists($tagName, $this->fi_tags)   
@@ -309,11 +305,11 @@ class FeedImporter_Import extends Omeka_Record
  			
  				) {
  				$priority = $this->fi_tags[$tagName]->item_type_id_priority;
- 				$tempCollectionId = $this->fi_tags[$tagName]->item_type_id_priority;
+ 				$itemTypeId = $this->fi_tags[$tagName]->item_type_id_priority;
  			}
  		}
- 		if($tempItemTypeId != -1 ) {
- 			$itemTypeId = $tempItemTypeId;
+ 		if( ! $itemTypeId ) {
+ 			$itemTypeId = $this->fi_feed->item_type_id;
  		}
  		return $itemTypeId; 		
  	}
