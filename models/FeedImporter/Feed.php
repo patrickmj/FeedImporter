@@ -31,27 +31,13 @@ class FeedImporter_Feed extends Omeka_Record
 	public $tags_map;
 	public $items_linkback;
 	public $task_id;
-	public $collect_by;
-	public $auto_create_collection_by_tag;
-	public $auto_create_collection_by_author;
+//	public $collect_by;
+//	public $auto_create_collection_by_tag;
+//	public $auto_create_collection_by_author;
 
-//Many thanks to Will Riley for this method
-	public function feedItemCount($feedId = false)
+	public function feedItemCount()
 	{
-		    $feedId = $feedId ? $feedId : $this->id;
-		    
-		    
-		    $db = get_db();
-            $select = new Omeka_Db_Select();
-            $select->from(array('ii' => 'feed_importer_imported_items'),
-                          "COUNT(DISTINCT(ii.id))");
-            $select->join(array('i' => 'feed_importer_imports'), 'i.id = ii.import_id', array());
-            $select->join(array('f' => 'feed_importer_feeds'), 'f.id = i.feed_id', array());
-            
-            $select->where('f.id = ?');
-            //echo $select;
-            $feedItemCount = $db->fetchOne($select, array($feedId));
-            return $feedItemCount;
+	    return $this->getTable()->feedItemCount($this->id);
 	}
 	
 }

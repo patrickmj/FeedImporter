@@ -1,6 +1,6 @@
 <?php
 
-$head = array('body_class' => 'feed-importer primary', 
+$head = array('body_class' => 'feed-importer primary',
               'title'      => 'Feed Importer -- new',
               'content_class' => 'horizontal-nav');
               
@@ -30,7 +30,7 @@ $lastImport = $importTable->getMostRecentImportForFeedId($feedimporter_feed->id)
 			<th>Import Status</th> <!-- Show the status of the import -->
 			<th>Import Now?</th>
 			<th>Edit?</th> <!-- Link to the edit view -->
-			<th>History</th>				
+			<th>History</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -39,7 +39,7 @@ $lastImport = $importTable->getMostRecentImportForFeedId($feedimporter_feed->id)
 			<td><?php echo $feedimporter_feed->feed_title ?></td>
 			<td><?php echo $feedimporter_feed->feed_description ?></td>
 			<td>
-				<?php 
+				<?php
 					if($collection) {
 						 echo link_to($collection, 'show', $collection->name);
 					} else {
@@ -48,10 +48,10 @@ $lastImport = $importTable->getMostRecentImportForFeedId($feedimporter_feed->id)
 				?>
 			</td>
 			<td><?php echo $feedimporter_feed->feedItemCount() ?></td>
-			<td><?php echo $lastImport->created ; ?></td>		
+			<td><?php echo $lastImport->created ; ?></td>
 			<td><?php echo $lastImport->status; ?></td>
 			<td><a class="fi_import" href="<?php echo uri('feeds/import/' . $feedimporter_feed->id) ?>">Do Import Now</a></td>
-			<td><a class="edit" href="<?php echo uri('feeds/edit/' . $feed->id ) ?>">Edit</td>
+			<td><a class="edit" href="<?php echo uri('feeds/edit/' . $feedimporter_feed->id ) ?>">Edit</td>
 			<td><a class="fi_history" href="<?php echo uri('feeds/history/' . $feedimporter_feed->id) ?>">View Import History</a></td>
 		</tr>
 	</tbody>

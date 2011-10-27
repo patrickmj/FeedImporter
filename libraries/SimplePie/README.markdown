@@ -2,11 +2,20 @@
 
 ## Authors and contributors
 
-* [Ryan Parman](http://ryanparman.com)
-* [Geoffrey Sneddon](http://gsnedders.com)
-* [Ryan McCue](http://ryanmccue.info)
-* [Michael Shipley](http://michaelpshipley.com)
-* [Steve Minutillo](http://minutillo.com/steve/)
+### Current
+* [Ryan McCue](http://ryanmccue.info) (Maintainer, support)
+
+### Alumni
+* [Ryan Parman](http://ryanparman.com) (Creator, developer, evangelism, support)
+* [Geoffrey Sneddon](http://gsnedders.com) (Lead developer)
+* [Michael Shipley](http://michaelpshipley.com) (Submitter of patches, support)
+* [Steve Minutillo](http://minutillo.com/steve/) (Submitter of patches)
+
+### Contributors
+For a complete list of contributors:
+
+1. Pull down the latest SimplePie code
+2. In the `simplepie` directory, run `git shortlog -ns`
 
 
 ## License
@@ -18,7 +27,7 @@
 
 SimplePie is currently maintained by Ryan McCue.
 
-At the moment, there isn't a lot of active development happening. If the community decides that SimplePie is a valuable tool, then the community will come together to maintain it into the future.
+SimplePie is currently in "low-power mode." If the community decides that SimplePie is a valuable tool, then the community will come together to maintain it into the future.
 
 If you're interested in getting involved with SimplePie, please get in touch with Ryan McCue.
 
@@ -47,7 +56,7 @@ For further setup and install documentation, function references, etc., visit:
 [http://simplepie.org/wiki/](http://simplepie.org/wiki/)
 
 For bug reports and feature requests, visit:
-[http://github.com/rmccue/simplepie/issues](http://github.com/rmccue/simplepie/issues)
+[http://github.com/simplepie/simplepie/issues](http://github.com/simplepie/simplepie/issues)
 
 Support mailing list -- powered by users, for users.
 [http://tech.groups.yahoo.com/group/simplepie-support/](http://tech.groups.yahoo.com/group/simplepie-support/)
